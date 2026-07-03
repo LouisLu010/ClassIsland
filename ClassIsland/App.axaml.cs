@@ -245,7 +245,7 @@ public partial class App : AppBase, IAppHost
         ActivateAppDirectories();
         if (!Design.IsDesignMode && !System.OperatingSystem.IsMacOS())
         {
-            // this.EnableHotReload();
+            this.EnableHotReload();
         }
         AvaloniaXamlLoader.Load(this);
         if (DesktopLifetime != null)

@@ -202,7 +202,7 @@ public partial class DevPortalWindow : MyWindow
 
     private void ButtonTestMve_OnClick(object? sender, RoutedEventArgs e)
     {
-        var view = ViewManagementService.Instance.ActivateNewView<MveTestView>();
+        var view = new MveTestView();
         view.Show();
     }
 }

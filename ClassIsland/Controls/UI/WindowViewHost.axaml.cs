@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Metadata;
+using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using ClassIsland.Core.Abstractions.Controls;
 using ClassIsland.Core.Controls;
@@ -14,7 +15,7 @@ namespace ClassIsland.Controls.UI;
 [PseudoClasses(":mobile")]
 public partial class WindowViewHost : MyWindow, IViewHost
 {
-    public bool IsMobileMode { get; }
+    public bool IsMobileMode { get; init; }
     
     private HashSet<ViewBase> ActivatedViews { get; } = [];
 
@@ -22,25 +23,38 @@ public partial class WindowViewHost : MyWindow, IViewHost
 
     private bool _isClosed = false;
 
-    public WindowViewHost(bool isMobileMode=false)
+    private bool _isSyncingHostSize = false;
+
+    private bool _isSyncingHostPosition = false;
+
+    private bool _isSyncingHostWindowState = false;
+
+    private ViewBase? _currentView;
+
+    private IDisposable? _currentViewHostPositionObserver;
+
+    private IDisposable? _currentViewHostWindowStateObserver;
+
+    public WindowViewHost()
     {
-        IsMobileMode = isMobileMode;
         DataContext = this;
         InitializeComponent();
+        TitleBar.ExtendsContentIntoTitleBar = true;
+        TitleBar.Height = 48;
         Closing += OnClosing;
         Closed += OnClosed;
-        if (IsMobileMode)
-        {
-            Width = 360;
-            Height = 800;
-            PseudoClasses.Set(":mobile", true);
-        }
-        
+        PositionChanged += OnPositionChanged;
+    }
+
+    private void OnPositionChanged(object? sender, PixelPointEventArgs e)
+    {
+        UpdateCurrentViewHostPositionFromWindow();
     }
 
     private void OnClosed(object? sender, EventArgs e)
     {
         _isClosed = true;
+        SetCurrentView(null);
         NavigationPage.PopAllModalsAsync(null);
         NavigationPage.PopToRootAsync(null);
         NavigationPage.ReplaceAsync(new ContentPage(), null);
@@ -118,21 +132,292 @@ public partial class WindowViewHost : MyWindow, IViewHost
         return true;
     }
 
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+
+        if (change.Property == TopLevel.ClientSizeProperty)
+        {
+            UpdateCurrentViewHostSizeFromWindow();
+        }
+
+        if (change.Property == Window.WindowStateProperty)
+        {
+            UpdateCurrentViewHostWindowStateFromWindow();
+        }
+    }
+
+    private void ApplyHostSizeToWindow(ViewBase view)
+    {
+        if (IsMobileMode || _isSyncingHostSize)
+        {
+            return;
+        }
+
+        if (view.HostWidth <= 0 || view.HostHeight <= 0)
+        {
+            return;
+        }
+
+        _isSyncingHostSize = true;
+        try
+        {
+            SetCurrentValue(WidthProperty, view.HostWidth);
+            SetCurrentValue(HeightProperty, view.HostHeight);
+        }
+        finally
+        {
+            _isSyncingHostSize = false;
+        }
+    }
+
+    private void ApplyHostPositionToWindow(ViewBase view)
+    {
+        if (IsMobileMode || _isSyncingHostPosition || !_isShowed)
+        {
+            return;
+        }
+
+        if (!view.IsSet(ViewBase.HostPositionProperty) || Position == view.HostPosition)
+        {
+            return;
+        }
+
+        _isSyncingHostPosition = true;
+        try
+        {
+            Position = view.HostPosition;
+        }
+        finally
+        {
+            _isSyncingHostPosition = false;
+        }
+    }
+
+    private void ApplyHostWindowStateToWindow(ViewBase view)
+    {
+        if (_isSyncingHostWindowState || !_isShowed)
+        {
+            return;
+        }
+
+        if (!view.IsSet(ViewBase.HostWindowStateProperty) || WindowState == view.HostWindowState)
+        {
+            return;
+        }
+
+        _isSyncingHostWindowState = true;
+        try
+        {
+            WindowState = view.HostWindowState;
+        }
+        finally
+        {
+            _isSyncingHostWindowState = false;
+        }
+    }
+
+    private void ApplyHostBoundsToWindow(ViewBase view)
+    {
+        if (view.IsSet(ViewBase.HostWindowStateProperty) && view.HostWindowState == WindowState.Normal)
+        {
+            ApplyHostWindowStateToWindow(view);
+        }
+        ApplyHostSizeToWindow(view);
+        SyncHostPositionWithWindow(view);
+        SyncHostWindowStateWithWindow(view);
+    }
+
+    private void SyncHostPositionWithWindow(ViewBase view)
+    {
+        if (view.IsSet(ViewBase.HostPositionProperty) && view.ShowedOnce)
+        {
+            ApplyHostPositionToWindow(view);
+        }
+        else
+        {
+            UpdateHostPositionFromWindow(view);
+        }
+    }
+
+    private void SyncHostWindowStateWithWindow(ViewBase view)
+    {
+        if (view.IsSet(ViewBase.HostWindowStateProperty))
+        {
+            ApplyHostWindowStateToWindow(view);
+        }
+        else
+        {
+            UpdateHostWindowStateFromWindow(view);
+        }
+    }
+
+    private void UpdateCurrentViewHostSizeFromWindow()
+    {
+        if (_isShowed && NavigationPage.CurrentPage is ViewBase view)
+        {
+            UpdateHostSizeFromWindow(view);
+        }
+    }
+
+    private void UpdateCurrentViewHostPositionFromWindow()
+    {
+        if (_isShowed && NavigationPage.CurrentPage is ViewBase view)
+        {
+            UpdateHostPositionFromWindow(view);
+        }
+    }
+
+    private void UpdateCurrentViewHostWindowStateFromWindow()
+    {
+        if (_isShowed && NavigationPage.CurrentPage is ViewBase view)
+        {
+            UpdateHostWindowStateFromWindow(view);
+        }
+    }
+
+    private void UpdateHostBoundsFromWindow(ViewBase view)
+    {
+        UpdateHostSizeFromWindow(view);
+        UpdateHostPositionFromWindow(view);
+        UpdateHostWindowStateFromWindow(view);
+    }
+
+    private void UpdateHostSizeFromWindow(ViewBase view)
+    {
+        if (IsMobileMode || _isSyncingHostSize)
+        {
+            return;
+        }
+
+        var size = ClientSize;
+        
+        _isSyncingHostSize = true;
+        try
+        {
+            if (size is { Width: > 0, Height: > 0 })
+            {
+                view.HostWidth = size.Width;
+                view.HostHeight = size.Height;
+            }
+        }
+        finally
+        {
+            _isSyncingHostSize = false;
+        }
+    }
+
+    private void UpdateHostPositionFromWindow(ViewBase view)
+    {
+        if (IsMobileMode || _isSyncingHostPosition || !_isShowed)
+        {
+            return;
+        }
+
+        if (view.IsSet(ViewBase.HostPositionProperty) && view.HostPosition == Position)
+        {
+            return;
+        }
+
+        _isSyncingHostPosition = true;
+        try
+        {
+            view.HostPosition = Position;
+        }
+        finally
+        {
+            _isSyncingHostPosition = false;
+        }
+    }
+
+    private void UpdateHostWindowStateFromWindow(ViewBase view)
+    {
+        if (_isSyncingHostWindowState || !_isShowed)
+        {
+            return;
+        }
+
+        if (view.IsSet(ViewBase.HostWindowStateProperty) && view.HostWindowState == WindowState)
+        {
+            return;
+        }
+
+        _isSyncingHostWindowState = true;
+        try
+        {
+            view.HostWindowState = WindowState;
+        }
+        finally
+        {
+            _isSyncingHostWindowState = false;
+        }
+    }
+
+    private void SetCurrentView(ViewBase? view)
+    {
+        if (ReferenceEquals(_currentView, view))
+        {
+            return;
+        }
+
+        if (_currentView != null)
+        {
+            _currentView.Loaded -= CurrentView_OnLoaded;
+            _currentViewHostPositionObserver?.Dispose();
+            _currentViewHostPositionObserver = null;
+            _currentViewHostWindowStateObserver?.Dispose();
+            _currentViewHostWindowStateObserver = null;
+        }
+
+        _currentView = view;
+
+        if (_currentView == null)
+        {
+            return;
+        }
+
+        _currentView.Loaded += CurrentView_OnLoaded;
+        _currentViewHostPositionObserver = _currentView.GetObservable(ViewBase.HostPositionProperty)
+            .Subscribe(_ => ApplyHostPositionToWindow(_currentView));
+        _currentViewHostWindowStateObserver = _currentView.GetObservable(ViewBase.HostWindowStateProperty)
+            .Subscribe(_ => ApplyHostWindowStateToWindow(_currentView));
+        ApplyHostBoundsToWindow(_currentView);
+    }
+
+    private void CurrentView_OnLoaded(object? sender, RoutedEventArgs e)
+    {
+        if (sender is ViewBase view && ReferenceEquals(NavigationPage.CurrentPage, view))
+        {
+            ApplyHostBoundsToWindow(view);
+        }
+    }
+
+    private void PreShow()
+    {
+        if (!IsMobileMode) return;
+        Width = 360;
+        Height = 800;
+        PseudoClasses.Set(":mobile", true);
+    }
+
     public override void Show()
     {
+        PreShow();
         base.Show();
         _isShowed = true;
     }
 
     public void Show(IViewHost owner)
     {
+        PreShow();
         Show(owner, false);
     }
 
-    public void Show(IViewHost? owner, bool modal)
+    private void Show(IViewHost? owner, bool modal)
     {
         if (owner is WindowViewHost host)
         {
+            PreShow();
             if (modal)
             {
                 ShowDialog(host);   
@@ -150,39 +435,38 @@ public partial class WindowViewHost : MyWindow, IViewHost
         
     }
 
-    public async Task ShowView(ViewBase view, ViewBase? owner = null)
+    private async Task ShowViewCore(ViewBase view, ViewBase? owner, bool modal)
     {
         if (!ActivatedViews.Contains(view))
         {
             throw new InvalidOperationException("视图必须已经激活到此视图宿主才能显示。");
         }
 
-        if (!_isShowed)
-        {
-            Show(owner?.AssociatedViewHost, true);
-        }
-
-        await NavigationPage.PushAsync(view);
-    }
-
-    public async Task ShowViewModal(ViewBase view, ViewBase owner)
-    {
-        if (!ActivatedViews.Contains(view))
-        {
-            throw new InvalidOperationException("视图必须已经激活到此视图宿主才能显示。");
-        }
-
-        if (owner.AssociatedViewHost == null)
+        if (owner is { AssociatedViewHost: null })
         {
             throw new InvalidOperationException("视图所有者必须已经激活到此视图宿主才能显示。");
         }
         
         if (!_isShowed)
         {
-            Show(owner.AssociatedViewHost, true);
+            WindowStartupLocation = view.HostStartupLocation;
+            ApplyHostSizeToWindow(view);
+            Show(owner?.AssociatedViewHost, modal);
         }
-
+        
         await NavigationPage.PushAsync(view);
+        SetCurrentView(view);
+        ApplyHostBoundsToWindow(view);
+    }
+
+    public async Task ShowView(ViewBase view, ViewBase? owner = null)
+    {
+        await ShowViewCore(view, owner, false);
+    }
+
+    public async Task ShowViewModal(ViewBase view, ViewBase owner)
+    {
+        await ShowViewCore(view, owner, true);
     }
 
     public async Task<bool> HideView(ViewBase view)
@@ -197,6 +481,7 @@ public partial class WindowViewHost : MyWindow, IViewHost
             return false;
         }
 
+        UpdateHostBoundsFromWindow(view);
         if (!DeactivateView(view))
         {
             return false;
@@ -227,5 +512,11 @@ public partial class WindowViewHost : MyWindow, IViewHost
         viewBase.ViewDeactivating(WindowCloseReason.Undefined, true, true);
         viewBase.ViewDeactivated();
         ActivatedViews.Remove(viewBase);
+
+        SetCurrentView(NavigationPage.CurrentPage as ViewBase);
+        if (NavigationPage.CurrentPage is ViewBase currentView)
+        {
+            ApplyHostBoundsToWindow(currentView);
+        }
     }
 }

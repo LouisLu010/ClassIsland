@@ -25,6 +25,63 @@ public abstract class ViewBase : ContentPage
         get => GetValue(ResultProperty);
         set => SetValue(ResultProperty, value);
     }
+
+    public static readonly StyledProperty<double> HostWidthProperty = AvaloniaProperty.Register<ViewBase, double>(
+        nameof(HostWidth), 600.0);
+
+    public double HostWidth
+    {
+        get => GetValue(HostWidthProperty);
+        set => SetValue(HostWidthProperty, value);
+    }
+
+    public static readonly StyledProperty<double> HostHeightProperty = AvaloniaProperty.Register<ViewBase, double>(
+        nameof(HostHeight), 400.0);
+
+    public double HostHeight
+    {
+        get => GetValue(HostHeightProperty);
+        set => SetValue(HostHeightProperty, value);
+    }
+
+    public static readonly StyledProperty<PixelPoint> HostPositionProperty = AvaloniaProperty.Register<ViewBase, PixelPoint>(
+        nameof(HostPosition));
+
+    public PixelPoint HostPosition
+    {
+        get => GetValue(HostPositionProperty);
+        set => SetValue(HostPositionProperty, value);
+    }
+
+    public static readonly StyledProperty<WindowState> HostWindowStateProperty = AvaloniaProperty.Register<ViewBase, WindowState>(
+        nameof(HostWindowState), WindowState.Normal);
+
+    public WindowState HostWindowState
+    {
+        get => GetValue(HostWindowStateProperty);
+        set => SetValue(HostWindowStateProperty, value);
+    }
+
+    public static readonly StyledProperty<WindowStartupLocation> HostStartupLocationProperty = AvaloniaProperty.Register<ViewBase, WindowStartupLocation>(
+        nameof(HostStartupLocation));
+
+    public WindowStartupLocation HostStartupLocation
+    {
+        get => GetValue(HostStartupLocationProperty);
+        set => SetValue(HostStartupLocationProperty, value);
+    }
+    
+    public static readonly StyledProperty<bool> UseInlineHeaderProperty = AvaloniaProperty.Register<ViewBase, bool>(
+        nameof(UseInlineHeader));
+
+    public bool UseInlineHeader
+    {
+        get => GetValue(UseInlineHeaderProperty);
+        set => SetValue(UseInlineHeaderProperty, value);
+    }
+    
+    public bool ShowedOnce { get; private set; }
+
     
     #endregion
     
@@ -131,6 +188,7 @@ public abstract class ViewBase : ContentPage
             AssociatedViewHost.ShowView(this, owner);
         }
         _isShowed = true;
+        ShowedOnce = true;
     }
 
     #endregion

@@ -348,5 +348,9 @@
         </Style>
     </Style>
     
+    <Style Selector=":is(ContentPage)">
+        <Setter Property="Background" Value="Transparent"/>
+    </Style>
+    
     <StyleInclude Source="./Themes/TextBaselineFixes.axaml"/>
 </Styles>

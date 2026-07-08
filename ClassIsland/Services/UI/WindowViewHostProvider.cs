@@ -33,7 +33,10 @@ public class WindowViewHostProvider(bool mobile) : IViewHostProvider
 
     private WindowViewHost CreateNew()
     {
-        var host = new WindowViewHost(mobile);
+        var host = new WindowViewHost()
+        {
+            IsMobileMode = mobile
+        };
         host.Closed += HostOnClosed;
         ViewHosts.Add(host);
         return host;

@@ -349,7 +349,7 @@
     </Style>
     
     <Style Selector=":is(ContentPage)">
-        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Background" Value="{x:Null}"/>
     </Style>
     
     <StyleInclude Source="./Themes/TextBaselineFixes.axaml"/>

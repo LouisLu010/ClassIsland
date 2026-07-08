@@ -12,7 +12,7 @@ using ClassIsland.Core.Controls;
 
 namespace ClassIsland.Controls.UI;
 
-[PseudoClasses(":mobile")]
+[PseudoClasses(":mobile", ":inlineHeader")]
 public partial class WindowViewHost : MyWindow, IViewHost
 {
     public bool IsMobileMode { get; init; }
@@ -35,12 +35,12 @@ public partial class WindowViewHost : MyWindow, IViewHost
 
     private IDisposable? _currentViewHostWindowStateObserver;
 
+    private IDisposable? _currentViewUseInlineHeaderObserver;
+
     public WindowViewHost()
     {
         DataContext = this;
         InitializeComponent();
-        TitleBar.ExtendsContentIntoTitleBar = true;
-        TitleBar.Height = 48;
         Closing += OnClosing;
         Closed += OnClosed;
         PositionChanged += OnPositionChanged;
@@ -228,6 +228,12 @@ public partial class WindowViewHost : MyWindow, IViewHost
         SyncHostWindowStateWithWindow(view);
     }
 
+    private void ApplyViewFeatures(ViewBase view)
+    {
+        PseudoClasses.Set(":inlineHeader", view.UseInlineHeader);
+        TitleBar.ExtendsContentIntoTitleBar = view.UseInlineHeader;
+    }
+
     private void SyncHostPositionWithWindow(ViewBase view)
     {
         if (view.IsSet(ViewBase.HostPositionProperty) && view.ShowedOnce)
@@ -367,6 +373,8 @@ public partial class WindowViewHost : MyWindow, IViewHost
             _currentViewHostPositionObserver = null;
             _currentViewHostWindowStateObserver?.Dispose();
             _currentViewHostWindowStateObserver = null;
+            _currentViewUseInlineHeaderObserver?.Dispose();
+            _currentViewUseInlineHeaderObserver = null;
         }
 
         _currentView = view;
@@ -381,7 +389,10 @@ public partial class WindowViewHost : MyWindow, IViewHost
             .Subscribe(_ => ApplyHostPositionToWindow(_currentView));
         _currentViewHostWindowStateObserver = _currentView.GetObservable(ViewBase.HostWindowStateProperty)
             .Subscribe(_ => ApplyHostWindowStateToWindow(_currentView));
+        _currentViewUseInlineHeaderObserver = _currentView.GetObservable(ViewBase.UseInlineHeaderProperty)
+            .Subscribe(_ => ApplyViewFeatures(_currentView));
         ApplyHostBoundsToWindow(_currentView);
+        ApplyViewFeatures(_currentView);
     }
 
     private void CurrentView_OnLoaded(object? sender, RoutedEventArgs e)

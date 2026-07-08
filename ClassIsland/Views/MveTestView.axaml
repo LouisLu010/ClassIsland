@@ -9,6 +9,9 @@
              x:Class="ClassIsland.Views.MveTestView"
              Header="Mve Hello!"
              HostStartupLocation="CenterScreen">
+    <NavigationPage.TopCommandBar>
+        <TextBlock Text="123"/>
+    </NavigationPage.TopCommandBar>
     <ci:ViewBase.HeaderTemplate>
         <DataTemplate>
             <TextBlock>123</TextBlock>

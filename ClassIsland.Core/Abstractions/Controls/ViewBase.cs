@@ -72,7 +72,7 @@ public abstract class ViewBase : ContentPage
     }
     
     public static readonly StyledProperty<bool> UseInlineHeaderProperty = AvaloniaProperty.Register<ViewBase, bool>(
-        nameof(UseInlineHeader));
+        nameof(UseInlineHeader), true);
 
     public bool UseInlineHeader
     {

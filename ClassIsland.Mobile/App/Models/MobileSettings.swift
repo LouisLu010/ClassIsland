@@ -7,6 +7,7 @@ struct MobileSettings: Codable, Equatable, Sendable {
     var showCurrentLessonOnlyOnClass = false
     var useInitialInCompactIsland = true
     var keepAfterSchoolActivity = false
+    var liveActivityLayout = LiveActivityLayout.default
     var appearance = AppearancePreference.system
     var accent = AccentPreference.classIslandBlue
     var importedAccentHex: String?
@@ -25,6 +26,7 @@ struct MobileSettings: Codable, Equatable, Sendable {
         case showCurrentLessonOnlyOnClass
         case useInitialInCompactIsland
         case keepAfterSchoolActivity
+        case liveActivityLayout
         case appearance
         case accent
         case importedAccentHex
@@ -47,6 +49,8 @@ struct MobileSettings: Codable, Equatable, Sendable {
             ?? defaults.useInitialInCompactIsland
         keepAfterSchoolActivity = (try? container.decode(Bool.self, forKey: .keepAfterSchoolActivity))
             ?? defaults.keepAfterSchoolActivity
+        liveActivityLayout = (try? container.decode(LiveActivityLayout.self, forKey: .liveActivityLayout))
+            ?? defaults.liveActivityLayout
         appearance = (try? container.decode(AppearancePreference.self, forKey: .appearance)) ?? defaults.appearance
         accent = (try? container.decode(AccentPreference.self, forKey: .accent)) ?? defaults.accent
         importedAccentHex = try? container.decode(String.self, forKey: .importedAccentHex)
@@ -75,6 +79,7 @@ struct MobileSettings: Codable, Equatable, Sendable {
         try container.encode(showCurrentLessonOnlyOnClass, forKey: .showCurrentLessonOnlyOnClass)
         try container.encode(useInitialInCompactIsland, forKey: .useInitialInCompactIsland)
         try container.encode(keepAfterSchoolActivity, forKey: .keepAfterSchoolActivity)
+        try container.encode(liveActivityLayout, forKey: .liveActivityLayout)
         try container.encode(appearance, forKey: .appearance)
         try container.encode(accent, forKey: .accent)
         try container.encodeIfPresent(importedAccentHex, forKey: .importedAccentHex)
@@ -91,6 +96,18 @@ struct MobileSettings: Codable, Equatable, Sendable {
         return color
     }
 
+    var activityAccentRGBA: UInt32 {
+        if let importedAccentHex,
+           let value = Self.rgba(hex: importedAccentHex) {
+            return value
+        }
+        return switch accent {
+        case .classIslandBlue: 0x05ABE8FF
+        case .mint: 0x1FB88CFF
+        case .orange: 0xF57324FF
+        }
+    }
+
     func rotationOffset(for cycle: Int) -> Int {
         guard cycle >= 0, cycle < rotationOffsets.count else { return 0 }
         return rotationOffsets[cycle]
@@ -105,19 +122,21 @@ struct MobileSettings: Codable, Equatable, Sendable {
     }
 
     private static func color(hex: String) -> Color? {
+        guard let value = rgba(hex: hex) else { return nil }
+        let red = Double((value >> 24) & 0xFF) / 255
+        let green = Double((value >> 16) & 0xFF) / 255
+        let blue = Double((value >> 8) & 0xFF) / 255
+        let alpha = Double(value & 0xFF) / 255
+        return Color(red: red, green: green, blue: blue, opacity: alpha)
+    }
+
+    private static func rgba(hex: String) -> UInt32? {
         let cleaned = hex.trimmingCharacters(in: CharacterSet(charactersIn: "#"))
         guard cleaned.count == 6 || cleaned.count == 8,
-              let value = UInt64(cleaned, radix: 16) else {
+              let value = UInt32(cleaned, radix: 16) else {
             return nil
         }
-        let redShift = cleaned.count == 8 ? 24 : 16
-        let greenShift = cleaned.count == 8 ? 16 : 8
-        let blueShift = cleaned.count == 8 ? 8 : 0
-        let red = Double((value >> redShift) & 0xFF) / 255
-        let green = Double((value >> greenShift) & 0xFF) / 255
-        let blue = Double((value >> blueShift) & 0xFF) / 255
-        let alpha = cleaned.count == 8 ? Double(value & 0xFF) / 255 : 1
-        return Color(red: red, green: green, blue: blue, opacity: alpha)
+        return cleaned.count == 8 ? value : value << 8 | 0xFF
     }
 }
 

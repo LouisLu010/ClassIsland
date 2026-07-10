@@ -38,12 +38,16 @@ struct SettingsView: View {
         switch page {
         case .schedule:
             ScheduleView()
+        case .profile:
+            ProfileEditorView()
         case .general:
             generalPage
         case .storage:
             storagePage
         case .appearance:
             appearancePage
+        case .components:
+            LiveActivityComponentsEditorView()
         case .notification:
             notificationPage
         case .about:

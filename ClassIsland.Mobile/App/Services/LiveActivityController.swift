@@ -25,7 +25,9 @@ final class LiveActivityController {
             return true
         }
 
-        let profileName = snapshot.profileName.isEmpty ? "ClassIsland" : snapshot.profileName
+        let profileName = activityText(
+            snapshot.profileName.isEmpty ? "ClassIsland" : snapshot.profileName
+        )
         let state = contentState(snapshot: snapshot, settings: settings, now: now)
         let staleDate = snapshot.nextBoundary?.addingTimeInterval(120)
         let content = ActivityContent(state: state, staleDate: staleDate)
@@ -58,7 +60,9 @@ final class LiveActivityController {
             timerEnd: nil,
             nextTitle: "",
             nextStart: nil,
-            updatedAt: Date()
+            updatedAt: Date(),
+            accentRGBA: 0x05ABE8FF,
+            layout: .default
         )
         let finalContent = ActivityContent(state: finalState, staleDate: nil)
         for activity in Activity<ScheduleActivityAttributes>.activities {
@@ -119,19 +123,27 @@ final class LiveActivityController {
 
         return ScheduleActivityAttributes.ContentState(
             phase: snapshot.phase,
-            headline: headline,
+            headline: activityText(headline),
             compactTitle: compactTitle,
-            teacher: settings.showTeacher ? teacherSource?.teacher ?? "" : "",
+            teacher: settings.showTeacher ? activityText(teacherSource?.teacher ?? "") : "",
             timerStart: timerStart,
             timerEnd: timerEnd,
-            nextTitle: snapshot.phase == .inClass || snapshot.phase == .breakTime
-                ? snapshot.next?.subject ?? ""
-                : "",
+            nextTitle: activityText(
+                snapshot.phase == .inClass || snapshot.phase == .breakTime
+                    ? snapshot.next?.subject ?? ""
+                    : ""
+            ),
             nextStart: snapshot.phase == .inClass || snapshot.phase == .breakTime
                 ? snapshot.next?.start
                 : nil,
-            updatedAt: now
+            updatedAt: now,
+            accentRGBA: settings.activityAccentRGBA,
+            layout: settings.liveActivityLayout
         )
+    }
+
+    private func activityText(_ value: String) -> String {
+        String(value.prefix(48))
     }
 }
 

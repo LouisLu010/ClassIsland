@@ -318,6 +318,7 @@ final class ScheduleEngineTests: XCTestCase {
         XCTAssertFalse(settings.showTeacher)
         XCTAssertTrue(settings.liveActivitiesEnabled)
         XCTAssertEqual(settings.appearance, .system)
+        XCTAssertEqual(settings.activityAccentRGBA, 0x05ABE8FF)
         XCTAssertEqual(settings.maxRotationCycle, 12)
         XCTAssertEqual(settings.rotationOffset(for: 2), 0)
         XCTAssertEqual(settings.rotationOffset(for: 3), 2)
@@ -327,6 +328,10 @@ final class ScheduleEngineTests: XCTestCase {
             from: JSONEncoder().encode(settings)
         )
         XCTAssertEqual(roundTripped, settings)
+
+        var importedColor = settings
+        importedColor.importedAccentHex = "#12345680"
+        XCTAssertEqual(importedColor.activityAccentRGBA, 0x12345680)
     }
 
     private func date(_ value: String) throws -> Date {

@@ -39,6 +39,7 @@ targets:
       - path: LiveActivity
       - path: Shared/ScheduleActivityAttributes.swift
       - path: Shared/SchedulePhase.swift
+      - path: Shared/LiveActivityLayout.swift
     info:
       path: Supporting/LiveActivity-Info.plist
     settings:

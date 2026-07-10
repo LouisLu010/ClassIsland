@@ -21,6 +21,7 @@ final class AppModel: ObservableObject {
     private let engine: ScheduleEngine
     private let liveActivityController: LiveActivityController
     private var hasBootstrapped = false
+    private var profileSourceData: Data?
     private var monitorTask: Task<Void, Never>?
     private var lastActivitySignature: ActivitySignature?
     private var scheduledRefreshDate: Date?
@@ -68,6 +69,7 @@ final class AppModel: ObservableObject {
         do {
             if let data = try repository.loadProfileData() {
                 profile = try decodeProfile(data)
+                profileSourceData = data
                 profileFileName = "Profile.json"
             }
         } catch {
@@ -103,6 +105,7 @@ final class AppModel: ObservableObject {
                 let decoded = try decodeProfile(data)
                 try repository.saveProfileData(data)
                 profile = decoded
+                profileSourceData = data
                 profileFileName = url.lastPathComponent
                 statusMessage = "已导入课表：\(url.lastPathComponent)"
                 await refreshCurrentSchedule()
@@ -137,10 +140,34 @@ final class AppModel: ObservableObject {
         await importDocument(url)
     }
 
+    @discardableResult
+    func createProfile(named name: String) async -> Bool {
+        await persistProfile(
+            ClassIslandProfile.newProfile(name: name),
+            preserving: nil,
+            successMessage: "已创建新档案"
+        )
+    }
+
+    @discardableResult
+    func saveProfile(_ updated: ClassIslandProfile) async -> Bool {
+        await persistProfile(
+            updated,
+            preserving: profileSourceData,
+            successMessage: "档案已保存"
+        )
+    }
+
+    func profileDocumentData() throws -> Data {
+        guard let profile else { throw ImportError.noProfile }
+        return try ProfileDocumentCodec.encode(profile, preserving: profileSourceData)
+    }
+
     func removeProfile() async {
         do {
             try repository.removeProfile()
             profile = nil
+            profileSourceData = nil
             profileFileName = ""
             currentSnapshot = nil
             lastActivitySignature = nil
@@ -221,6 +248,28 @@ final class AppModel: ObservableObject {
             throw ImportError.incompleteProfile
         }
         return decoded
+    }
+
+    private func persistProfile(
+        _ updated: ClassIslandProfile,
+        preserving originalData: Data?,
+        successMessage: String
+    ) async -> Bool {
+        do {
+            let data = try ProfileDocumentCodec.encode(updated, preserving: originalData)
+            let decoded = try decodeProfile(data)
+            try repository.saveProfileData(data)
+            profileSourceData = data
+            profile = decoded
+            profileFileName = "Profile.json"
+            lastActivitySignature = nil
+            statusMessage = successMessage
+            await refreshCurrentSchedule()
+            return true
+        } catch {
+            statusMessage = "保存档案失败：\(error.localizedDescription)"
+            return false
+        }
     }
 
     private func apply(_ windowsSettings: ClassIslandWindowsSettings) {
@@ -319,6 +368,8 @@ private struct ActivitySignature: Equatable {
     let showTeacher: Bool
     let compactInitial: Bool
     let keepAfterSchool: Bool
+    let accentRGBA: UInt32
+    let layout: LiveActivityLayout
 
     init(snapshot: ScheduleSnapshot?, settings: MobileSettings) {
         phase = snapshot?.phase
@@ -330,12 +381,15 @@ private struct ActivitySignature: Equatable {
         showTeacher = settings.showTeacher
         compactInitial = settings.useInitialInCompactIsland
         keepAfterSchool = settings.keepAfterSchoolActivity
+        accentRGBA = settings.activityAccentRGBA
+        layout = settings.liveActivityLayout
     }
 }
 
 enum ImportError: LocalizedError {
     case unsupportedDocument
     case incompleteProfile
+    case noProfile
 
     var errorDescription: String? {
         switch self {
@@ -343,6 +397,8 @@ enum ImportError: LocalizedError {
             "无法识别该 JSON。请选择 ClassIsland 的 Profile.json 或 Settings.json。"
         case .incompleteProfile:
             "课表缺少 ClassPlans、TimeLayouts 或 Subjects 数据。"
+        case .noProfile:
+            "当前没有可导出的档案。"
         }
     }
 }

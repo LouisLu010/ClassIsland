@@ -2,9 +2,11 @@ import SwiftUI
 
 enum AppPage: String, CaseIterable, Hashable, Identifiable {
     case schedule
+    case profile
     case general
     case storage
     case appearance
+    case components
     case notification
     case about
 
@@ -13,9 +15,11 @@ enum AppPage: String, CaseIterable, Hashable, Identifiable {
     var title: String {
         switch self {
         case .schedule: "课表"
+        case .profile: "档案编辑"
         case .general: "基本"
         case .storage: "存储"
         case .appearance: "外观"
+        case .components: "灵动岛组件"
         case .notification: "提醒"
         case .about: "关于 ClassIsland"
         }
@@ -24,9 +28,11 @@ enum AppPage: String, CaseIterable, Hashable, Identifiable {
     var systemImage: String {
         switch self {
         case .schedule: "calendar.day.timeline.leading"
+        case .profile: "doc.text"
         case .general: "gearshape"
         case .storage: "internaldrive"
         case .appearance: "paintbrush"
+        case .components: "square.grid.2x2"
         case .notification: "bell"
         case .about: "info.circle"
         }
@@ -35,9 +41,11 @@ enum AppPage: String, CaseIterable, Hashable, Identifiable {
     var selectedSystemImage: String {
         switch self {
         case .schedule: "calendar.day.timeline.leading"
+        case .profile: "doc.text.fill"
         case .general: "gearshape.fill"
         case .storage: "internaldrive.fill"
         case .appearance: "paintbrush.fill"
+        case .components: "square.grid.2x2.fill"
         case .notification: "bell.fill"
         case .about: "info.circle.fill"
         }
@@ -68,6 +76,10 @@ struct RootView: View {
         switch page {
         case .schedule:
             ScheduleView()
+        case .profile:
+            ProfileEditorView()
+        case .components:
+            LiveActivityComponentsEditorView()
         case .general, .storage, .appearance, .notification, .about:
             SettingsView(page: page)
         }
@@ -87,6 +99,7 @@ private struct SettingsSidebar: View {
 
             Section {
                 pageLink(.schedule)
+                pageLink(.profile)
             }
 
             Section("通用") {
@@ -96,6 +109,7 @@ private struct SettingsSidebar: View {
 
             Section("主界面") {
                 pageLink(.appearance)
+                pageLink(.components)
             }
 
             Section {

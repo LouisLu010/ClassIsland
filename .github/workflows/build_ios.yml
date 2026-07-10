@@ -39,3 +39,55 @@ jobs:
           -scheme ClassIslandMobile
           -destination 'platform=iOS Simulator,id=${{ steps.simulator.outputs.device_id }}'
           CODE_SIGNING_ALLOWED=NO
+
+      - name: Build unsigned device archive
+        working-directory: ClassIsland.Mobile
+        run: |
+          xcodebuild archive \
+            -project ClassIsland.Mobile.xcodeproj \
+            -scheme ClassIslandMobile \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/ClassIsland.xcarchive" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY=""
+
+      - name: Package unsigned IPA
+        shell: bash
+        run: |
+          app_path="$RUNNER_TEMP/ClassIsland.xcarchive/Products/Applications/ClassIsland.app"
+          test -d "$app_path"
+          test -d "$app_path/PlugIns/ClassIslandLiveActivity.appex"
+
+          package_dir="$RUNNER_TEMP/ClassIsland-ipa"
+          output_dir="$GITHUB_WORKSPACE/artifacts"
+          mkdir -p "$package_dir/Payload" "$output_dir"
+          cp -R "$app_path" "$package_dir/Payload/"
+          /usr/bin/ditto \
+            -c -k --sequesterRsrc --keepParent \
+            "$package_dir/Payload" \
+            "$output_dir/ClassIsland-iOS-unsigned.ipa"
+          /usr/bin/unzip -tqq "$output_dir/ClassIsland-iOS-unsigned.ipa"
+          archive_listing="$RUNNER_TEMP/ClassIsland-ipa-files.txt"
+          /usr/bin/unzip -Z1 "$output_dir/ClassIsland-iOS-unsigned.ipa" \
+            > "$archive_listing"
+          grep -Fxq 'Payload/ClassIsland.app/Info.plist' "$archive_listing"
+          grep -Fxq \
+            'Payload/ClassIsland.app/PlugIns/ClassIslandLiveActivity.appex/Info.plist' \
+            "$archive_listing"
+          (
+            cd "$output_dir"
+            shasum -a 256 "ClassIsland-iOS-unsigned.ipa" \
+              > "ClassIsland-iOS-unsigned.ipa.sha256"
+          )
+
+      - name: Upload unsigned IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: ClassIsland-iOS-unsigned-${{ github.sha }}
+          path: |
+            artifacts/ClassIsland-iOS-unsigned.ipa
+            artifacts/ClassIsland-iOS-unsigned.ipa.sha256
+          if-no-files-found: error
+          retention-days: 14

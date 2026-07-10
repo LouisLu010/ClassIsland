@@ -1,0 +1,98 @@
+{
+  "Name": "ClassIsland 示例课表",
+  "TimeLayouts": {
+    "10000000-0000-0000-0000-000000000001": {
+      "Name": "标准上午",
+      "Layouts": [
+        { "StartSecond": "", "EndSecond": "", "StartTime": "08:00:00", "EndTime": "08:45:00", "TimeType": 0 },
+        { "StartSecond": "", "EndSecond": "", "StartTime": "08:45:00", "EndTime": "08:55:00", "TimeType": 1, "BreakName": "课间休息" },
+        { "StartSecond": "", "EndSecond": "", "StartTime": "08:55:00", "EndTime": "09:40:00", "TimeType": 0 },
+        { "StartSecond": "", "EndSecond": "", "StartTime": "09:40:00", "EndTime": "10:00:00", "TimeType": 1, "BreakName": "大课间" },
+        { "StartSecond": "", "EndSecond": "", "StartTime": "10:00:00", "EndTime": "10:45:00", "TimeType": 0 },
+        { "StartSecond": "", "EndSecond": "", "StartTime": "10:45:00", "EndTime": "10:55:00", "TimeType": 1, "BreakName": "课间休息" },
+        { "StartSecond": "", "EndSecond": "", "StartTime": "10:55:00", "EndTime": "11:40:00", "TimeType": 0 }
+      ]
+    }
+  },
+  "ClassPlans": {
+    "20000000-0000-0000-0000-000000000001": {
+      "TimeLayoutId": "10000000-0000-0000-0000-000000000001",
+      "TimeRule": { "WeekDay": 1, "WeekCountDiv": 0, "WeekCountDivTotal": 2 },
+      "Classes": [
+        { "SubjectId": "30000000-0000-0000-0000-000000000001", "IsEnabled": true },
+        { "SubjectId": "30000000-0000-0000-0000-000000000002", "IsEnabled": true },
+        { "SubjectId": "30000000-0000-0000-0000-000000000003", "IsEnabled": true },
+        { "SubjectId": "30000000-0000-0000-0000-000000000004", "IsEnabled": true }
+      ],
+      "Name": "周一课表",
+      "IsOverlay": false,
+      "IsEnabled": true,
+      "AssociatedGroup": "ACAF4EF0-E261-4262-B941-34EA93CB4369"
+    },
+    "20000000-0000-0000-0000-000000000002": {
+      "TimeLayoutId": "10000000-0000-0000-0000-000000000001",
+      "TimeRule": { "WeekDay": 2, "WeekCountDiv": 0, "WeekCountDivTotal": 2 },
+      "Classes": [
+        { "SubjectId": "30000000-0000-0000-0000-000000000002", "IsEnabled": true },
+        { "SubjectId": "30000000-0000-0000-0000-000000000003", "IsEnabled": true },
+        { "SubjectId": "30000000-0000-0000-0000-000000000001", "IsEnabled": true },
+        { "SubjectId": "30000000-0000-0000-0000-000000000004", "IsEnabled": true }
+      ],
+      "Name": "周二课表",
+      "IsOverlay": false,
+      "IsEnabled": true,
+      "AssociatedGroup": "ACAF4EF0-E261-4262-B941-34EA93CB4369"
+    },
+    "20000000-0000-0000-0000-000000000003": {
+      "TimeLayoutId": "10000000-0000-0000-0000-000000000001",
+      "TimeRule": { "WeekDay": 3, "WeekCountDiv": 0, "WeekCountDivTotal": 2 },
+      "Classes": [
+        { "SubjectId": "30000000-0000-0000-0000-000000000003", "IsEnabled": true },
+        { "SubjectId": "30000000-0000-0000-0000-000000000001", "IsEnabled": true },
+        { "SubjectId": "30000000-0000-0000-0000-000000000002", "IsEnabled": true },
+        { "SubjectId": "30000000-0000-0000-0000-000000000004", "IsEnabled": true }
+      ],
+      "Name": "周三课表",
+      "IsOverlay": false,
+      "IsEnabled": true,
+      "AssociatedGroup": "ACAF4EF0-E261-4262-B941-34EA93CB4369"
+    },
+    "20000000-0000-0000-0000-000000000004": {
+      "TimeLayoutId": "10000000-0000-0000-0000-000000000001",
+      "TimeRule": { "WeekDay": 4, "WeekCountDiv": 0, "WeekCountDivTotal": 2 },
+      "Classes": [
+        { "SubjectId": "30000000-0000-0000-0000-000000000004", "IsEnabled": true },
+        { "SubjectId": "30000000-0000-0000-0000-000000000002", "IsEnabled": true },
+        { "SubjectId": "30000000-0000-0000-0000-000000000003", "IsEnabled": true },
+        { "SubjectId": "30000000-0000-0000-0000-000000000001", "IsEnabled": true }
+      ],
+      "Name": "周四课表",
+      "IsOverlay": false,
+      "IsEnabled": true,
+      "AssociatedGroup": "ACAF4EF0-E261-4262-B941-34EA93CB4369"
+    },
+    "20000000-0000-0000-0000-000000000005": {
+      "TimeLayoutId": "10000000-0000-0000-0000-000000000001",
+      "TimeRule": { "WeekDay": 5, "WeekCountDiv": 0, "WeekCountDivTotal": 2 },
+      "Classes": [
+        { "SubjectId": "30000000-0000-0000-0000-000000000001", "IsEnabled": true },
+        { "SubjectId": "30000000-0000-0000-0000-000000000004", "IsEnabled": true },
+        { "SubjectId": "30000000-0000-0000-0000-000000000002", "IsEnabled": true },
+        { "SubjectId": "30000000-0000-0000-0000-000000000003", "IsEnabled": true }
+      ],
+      "Name": "周五课表",
+      "IsOverlay": false,
+      "IsEnabled": true,
+      "AssociatedGroup": "ACAF4EF0-E261-4262-B941-34EA93CB4369"
+    }
+  },
+  "Subjects": {
+    "30000000-0000-0000-0000-000000000001": { "Name": "语文", "Initial": "语", "TeacherName": "林老师", "IsOutDoor": false },
+    "30000000-0000-0000-0000-000000000002": { "Name": "数学", "Initial": "数", "TeacherName": "周老师", "IsOutDoor": false },
+    "30000000-0000-0000-0000-000000000003": { "Name": "英语", "Initial": "英", "TeacherName": "Taylor", "IsOutDoor": false },
+    "30000000-0000-0000-0000-000000000004": { "Name": "体育", "Initial": "体", "TeacherName": "陈老师", "IsOutDoor": true }
+  },
+  "SelectedClassPlanGroupId": "ACAF4EF0-E261-4262-B941-34EA93CB4369",
+  "IsOverlayClassPlanEnabled": false,
+  "OrderedSchedules": {}
+}

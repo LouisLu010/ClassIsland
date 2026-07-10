@@ -1,0 +1,41 @@
+name: Build iOS
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "ClassIsland.Mobile/**"
+      - ".github/workflows/build_ios.yml"
+  pull_request:
+    paths:
+      - "ClassIsland.Mobile/**"
+      - ".github/workflows/build_ios.yml"
+
+jobs:
+  test:
+    runs-on: macos-15
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Select simulator
+        id: simulator
+        shell: bash
+        run: |
+          device_id="$(xcrun simctl list devices available -j | jq -r '[.devices[][] | select(.name | startswith("iPhone"))][0].udid')"
+          test -n "$device_id" -a "$device_id" != "null"
+          echo "device_id=$device_id" >> "$GITHUB_OUTPUT"
+
+      - name: Build and test
+        working-directory: ClassIsland.Mobile
+        run: >-
+          xcodebuild test
+          -project ClassIsland.Mobile.xcodeproj
+          -scheme ClassIslandMobile
+          -destination 'platform=iOS Simulator,id=${{ steps.simulator.outputs.device_id }}'
+          CODE_SIGNING_ALLOWED=NO

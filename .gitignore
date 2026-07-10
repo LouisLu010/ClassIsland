@@ -369,5 +369,11 @@ cipx/
 # macOS Desktop Services Store
 .DS_Store
 
+# Xcode / Swift local state
+ClassIsland.Mobile/**/xcuserdata/
+ClassIsland.Mobile/DerivedData/
+ClassIsland.Mobile/.build/
+ClassIsland.Mobile/.swiftpm/
+
 **/.idea/avalonia.xml
 **/.idea/copilot.*

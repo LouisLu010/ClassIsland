@@ -1,0 +1,273 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A00000000000000000000201 /* ClassIslandMobileApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000101 /* ClassIslandMobileApp.swift */; };
+		A00000000000000000000202 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000102 /* AppModel.swift */; };
+		A00000000000000000000203 /* MobileSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000103 /* MobileSettings.swift */; };
+		A00000000000000000000204 /* ScheduleModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000104 /* ScheduleModels.swift */; };
+		A00000000000000000000205 /* ClassIslandDateParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000105 /* ClassIslandDateParser.swift */; };
+		A00000000000000000000206 /* LiveActivityController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000106 /* LiveActivityController.swift */; };
+		A00000000000000000000207 /* MobileRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000107 /* MobileRepository.swift */; };
+		A00000000000000000000208 /* ScheduleEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000108 /* ScheduleEngine.swift */; };
+		A00000000000000000000209 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000109 /* RootView.swift */; };
+		A00000000000000000000210 /* ScheduleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000110 /* ScheduleView.swift */; };
+		A00000000000000000000211 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000111 /* SettingsView.swift */; };
+		A00000000000000000000212 /* ClassIslandProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000112 /* ClassIslandProfile.swift */; };
+		A00000000000000000000213 /* ScheduleActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000113 /* ScheduleActivityAttributes.swift */; };
+		A00000000000000000000214 /* SchedulePhase.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000114 /* SchedulePhase.swift */; };
+		A00000000000000000000215 /* ScheduleRefreshScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000118 /* ScheduleRefreshScheduler.swift */; };
+		A00000000000000000000220 /* ScheduleActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000113 /* ScheduleActivityAttributes.swift */; };
+		A00000000000000000000221 /* SchedulePhase.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000114 /* SchedulePhase.swift */; };
+		A00000000000000000000222 /* ClassIslandLiveActivityBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000115 /* ClassIslandLiveActivityBundle.swift */; };
+		A00000000000000000000223 /* ClassIslandLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000116 /* ClassIslandLiveActivity.swift */; };
+		A00000000000000000000230 /* ScheduleEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000117 /* ScheduleEngineTests.swift */; };
+		A00000000000000000000240 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000120 /* Assets.xcassets */; };
+		A00000000000000000000241 /* SampleProfile.json in Resources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000121 /* SampleProfile.json */; };
+		A00000000000000000000250 /* ClassIslandLiveActivity.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = A00000000000000000000091 /* ClassIslandLiveActivity.appex */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		A00000000000000000000251 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A00000000000000000000093 /* XCTest.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		A00000000000000000000700 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A00000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A00000000000000000000402;
+			remoteInfo = ClassIslandLiveActivity;
+		};
+		A00000000000000000000702 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A00000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A00000000000000000000401;
+			remoteInfo = ClassIslandMobile;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		A00000000000000000000304 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				A00000000000000000000250 /* ClassIslandLiveActivity.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		A00000000000000000000090 /* ClassIsland.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ClassIsland.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A00000000000000000000091 /* ClassIslandLiveActivity.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ClassIslandLiveActivity.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		A00000000000000000000092 /* ClassIslandMobileTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ClassIslandMobileTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A00000000000000000000093 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = System/Library/Frameworks/XCTest.framework; sourceTree = SDKROOT; };
+		A00000000000000000000101 /* ClassIslandMobileApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassIslandMobileApp.swift; sourceTree = "<group>"; };
+		A00000000000000000000102 /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
+		A00000000000000000000103 /* MobileSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileSettings.swift; sourceTree = "<group>"; };
+		A00000000000000000000104 /* ScheduleModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleModels.swift; sourceTree = "<group>"; };
+		A00000000000000000000105 /* ClassIslandDateParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassIslandDateParser.swift; sourceTree = "<group>"; };
+		A00000000000000000000106 /* LiveActivityController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityController.swift; sourceTree = "<group>"; };
+		A00000000000000000000107 /* MobileRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileRepository.swift; sourceTree = "<group>"; };
+		A00000000000000000000108 /* ScheduleEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleEngine.swift; sourceTree = "<group>"; };
+		A00000000000000000000109 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		A00000000000000000000110 /* ScheduleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleView.swift; sourceTree = "<group>"; };
+		A00000000000000000000111 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		A00000000000000000000112 /* ClassIslandProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassIslandProfile.swift; sourceTree = "<group>"; };
+		A00000000000000000000113 /* ScheduleActivityAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleActivityAttributes.swift; sourceTree = "<group>"; };
+		A00000000000000000000114 /* SchedulePhase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SchedulePhase.swift; sourceTree = "<group>"; };
+		A00000000000000000000115 /* ClassIslandLiveActivityBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassIslandLiveActivityBundle.swift; sourceTree = "<group>"; };
+		A00000000000000000000116 /* ClassIslandLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassIslandLiveActivity.swift; sourceTree = "<group>"; };
+		A00000000000000000000117 /* ScheduleEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleEngineTests.swift; sourceTree = "<group>"; };
+		A00000000000000000000118 /* ScheduleRefreshScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleRefreshScheduler.swift; sourceTree = "<group>"; };
+		A00000000000000000000120 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A00000000000000000000121 /* SampleProfile.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = SampleProfile.json; sourceTree = "<group>"; };
+		A00000000000000000000122 /* App-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "App-Info.plist"; sourceTree = "<group>"; };
+		A00000000000000000000123 /* LiveActivity-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "LiveActivity-Info.plist"; sourceTree = "<group>"; };
+		A00000000000000000000124 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		A00000000000000000000125 /* project.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = project.yml; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A00000000000000000000302 /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		A00000000000000000000312 /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		A00000000000000000000322 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (A00000000000000000000251 /* XCTest.framework in Frameworks */, );
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		A00000000000000000000002 = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000010 /* App */,
+				A00000000000000000000014 /* Shared */,
+				A00000000000000000000015 /* LiveActivity */,
+				A00000000000000000000016 /* Resources */,
+				A00000000000000000000017 /* Supporting */,
+				A00000000000000000000018 /* Tests */,
+				A00000000000000000000124 /* README.md */,
+				A00000000000000000000125 /* project.yml */,
+				A00000000000000000000004 /* Frameworks */,
+				A00000000000000000000003 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A00000000000000000000003 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000090 /* ClassIsland.app */,
+				A00000000000000000000091 /* ClassIslandLiveActivity.appex */,
+				A00000000000000000000092 /* ClassIslandMobileTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A00000000000000000000004 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (A00000000000000000000093 /* XCTest.framework */, );
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		A00000000000000000000010 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000101 /* ClassIslandMobileApp.swift */,
+				A00000000000000000000102 /* AppModel.swift */,
+				A00000000000000000000011 /* Models */,
+				A00000000000000000000012 /* Services */,
+				A00000000000000000000013 /* Views */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		A00000000000000000000011 /* Models */ = {isa = PBXGroup; children = (A00000000000000000000103, A00000000000000000000104, ); path = Models; sourceTree = "<group>"; };
+		A00000000000000000000012 /* Services */ = {isa = PBXGroup; children = (A00000000000000000000105, A00000000000000000000106, A00000000000000000000107, A00000000000000000000108, A00000000000000000000118, ); path = Services; sourceTree = "<group>"; };
+		A00000000000000000000013 /* Views */ = {isa = PBXGroup; children = (A00000000000000000000109, A00000000000000000000110, A00000000000000000000111, ); path = Views; sourceTree = "<group>"; };
+		A00000000000000000000014 /* Shared */ = {isa = PBXGroup; children = (A00000000000000000000112, A00000000000000000000113, A00000000000000000000114, ); path = Shared; sourceTree = "<group>"; };
+		A00000000000000000000015 /* LiveActivity */ = {isa = PBXGroup; children = (A00000000000000000000115, A00000000000000000000116, ); path = LiveActivity; sourceTree = "<group>"; };
+		A00000000000000000000016 /* Resources */ = {isa = PBXGroup; children = (A00000000000000000000120, A00000000000000000000121, ); path = Resources; sourceTree = "<group>"; };
+		A00000000000000000000017 /* Supporting */ = {isa = PBXGroup; children = (A00000000000000000000122, A00000000000000000000123, ); path = Supporting; sourceTree = "<group>"; };
+		A00000000000000000000018 /* Tests */ = {isa = PBXGroup; children = (A00000000000000000000117, ); path = Tests; sourceTree = "<group>"; };
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A00000000000000000000401 /* ClassIslandMobile */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A00000000000000000000611;
+			buildPhases = (A00000000000000000000301, A00000000000000000000302, A00000000000000000000303, A00000000000000000000304, );
+			buildRules = ();
+			dependencies = (A00000000000000000000701, );
+			name = ClassIslandMobile;
+			productName = ClassIslandMobile;
+			productReference = A00000000000000000000090;
+			productType = "com.apple.product-type.application";
+		};
+		A00000000000000000000402 /* ClassIslandLiveActivity */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A00000000000000000000621;
+			buildPhases = (A00000000000000000000311, A00000000000000000000312, A00000000000000000000313, );
+			buildRules = ();
+			dependencies = ();
+			name = ClassIslandLiveActivity;
+			productName = ClassIslandLiveActivity;
+			productReference = A00000000000000000000091;
+			productType = "com.apple.product-type.app-extension";
+		};
+		A00000000000000000000403 /* ClassIslandMobileTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A00000000000000000000631;
+			buildPhases = (A00000000000000000000321, A00000000000000000000322, A00000000000000000000323, );
+			buildRules = ();
+			dependencies = (A00000000000000000000703, );
+			name = ClassIslandMobileTests;
+			productName = ClassIslandMobileTests;
+			productReference = A00000000000000000000092;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A00000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					A00000000000000000000401 = {CreatedOnToolsVersion = 16.0; ProvisioningStyle = Automatic; };
+					A00000000000000000000402 = {CreatedOnToolsVersion = 16.0; ProvisioningStyle = Automatic; };
+					A00000000000000000000403 = {CreatedOnToolsVersion = 16.0; ProvisioningStyle = Automatic; TestTargetID = A00000000000000000000401; };
+				};
+			};
+			buildConfigurationList = A00000000000000000000601;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = zh_CN;
+			hasScannedForEncodings = 0;
+			knownRegions = (Base, en, zh_CN, );
+			mainGroup = A00000000000000000000002;
+			productRefGroup = A00000000000000000000003;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (A00000000000000000000401, A00000000000000000000402, A00000000000000000000403, );
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A00000000000000000000303 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000240, A00000000000000000000241, ); runOnlyForDeploymentPostprocessing = 0; };
+		A00000000000000000000313 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		A00000000000000000000323 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A00000000000000000000301 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A00000000000000000000201, A00000000000000000000202, A00000000000000000000203,
+				A00000000000000000000204, A00000000000000000000205, A00000000000000000000206,
+				A00000000000000000000207, A00000000000000000000208, A00000000000000000000209,
+				A00000000000000000000210, A00000000000000000000211, A00000000000000000000212,
+				A00000000000000000000213, A00000000000000000000214, A00000000000000000000215,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A00000000000000000000311 /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000220, A00000000000000000000221, A00000000000000000000222, A00000000000000000000223, ); runOnlyForDeploymentPostprocessing = 0; };
+		A00000000000000000000321 /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000230, ); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		A00000000000000000000701 /* PBXTargetDependency */ = {isa = PBXTargetDependency; target = A00000000000000000000402; targetProxy = A00000000000000000000700; };
+		A00000000000000000000703 /* PBXTargetDependency */ = {isa = PBXTargetDependency; target = A00000000000000000000401; targetProxy = A00000000000000000000702; };
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		A00000000000000000000501 /* Debug */ = {isa = XCBuildConfiguration; buildSettings = {ALWAYS_SEARCH_USER_PATHS = NO; CLANG_ENABLE_MODULES = YES; CLANG_ENABLE_OBJC_ARC = YES; DEBUG_INFORMATION_FORMAT = dwarf; ENABLE_TESTABILITY = YES; GCC_C_LANGUAGE_STANDARD = gnu17; IPHONEOS_DEPLOYMENT_TARGET = 17.0; ONLY_ACTIVE_ARCH = YES; SDKROOT = iphoneos; SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; SWIFT_VERSION = 5.10; }; name = Debug; };
+		A00000000000000000000502 /* Release */ = {isa = XCBuildConfiguration; buildSettings = {ALWAYS_SEARCH_USER_PATHS = NO; CLANG_ENABLE_MODULES = YES; CLANG_ENABLE_OBJC_ARC = YES; DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym"; GCC_C_LANGUAGE_STANDARD = gnu17; IPHONEOS_DEPLOYMENT_TARGET = 17.0; SDKROOT = iphoneos; SWIFT_COMPILATION_MODE = wholemodule; SWIFT_OPTIMIZATION_LEVEL = "-O"; SWIFT_VERSION = 5.10; VALIDATE_PRODUCT = YES; }; name = Release; };
+		A00000000000000000000511 /* Debug */ = {isa = XCBuildConfiguration; buildSettings = {ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon; ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = "Supporting/App-Info.plist"; LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks"; MARKETING_VERSION = 0.1.0; PRODUCT_BUNDLE_IDENTIFIER = cn.classisland.mobile; PRODUCT_MODULE_NAME = ClassIslandMobile; PRODUCT_NAME = ClassIsland; SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; SUPPORTS_MACCATALYST = NO; TARGETED_DEVICE_FAMILY = "1,2"; }; name = Debug; };
+		A00000000000000000000512 /* Release */ = {isa = XCBuildConfiguration; buildSettings = {ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon; ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = "Supporting/App-Info.plist"; LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks"; MARKETING_VERSION = 0.1.0; PRODUCT_BUNDLE_IDENTIFIER = cn.classisland.mobile; PRODUCT_MODULE_NAME = ClassIslandMobile; PRODUCT_NAME = ClassIsland; SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; SUPPORTS_MACCATALYST = NO; TARGETED_DEVICE_FAMILY = "1,2"; }; name = Release; };
+		A00000000000000000000521 /* Debug */ = {isa = XCBuildConfiguration; buildSettings = {APPLICATION_EXTENSION_API_ONLY = YES; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = "Supporting/LiveActivity-Info.plist"; LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../../Frameworks"; MARKETING_VERSION = 0.1.0; PRODUCT_BUNDLE_IDENTIFIER = cn.classisland.mobile.liveactivity; PRODUCT_NAME = ClassIslandLiveActivity; SKIP_INSTALL = YES; SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; TARGETED_DEVICE_FAMILY = "1,2"; }; name = Debug; };
+		A00000000000000000000522 /* Release */ = {isa = XCBuildConfiguration; buildSettings = {APPLICATION_EXTENSION_API_ONLY = YES; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = "Supporting/LiveActivity-Info.plist"; LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../../Frameworks"; MARKETING_VERSION = 0.1.0; PRODUCT_BUNDLE_IDENTIFIER = cn.classisland.mobile.liveactivity; PRODUCT_NAME = ClassIslandLiveActivity; SKIP_INSTALL = YES; SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; TARGETED_DEVICE_FAMILY = "1,2"; }; name = Release; };
+		A00000000000000000000531 /* Debug */ = {isa = XCBuildConfiguration; buildSettings = {BUNDLE_LOADER = "$(TEST_HOST)"; CODE_SIGN_STYLE = Automatic; GENERATE_INFOPLIST_FILE = YES; PRODUCT_BUNDLE_IDENTIFIER = cn.classisland.mobile.tests; PRODUCT_NAME = ClassIslandMobileTests; SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; TARGETED_DEVICE_FAMILY = "1,2"; TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ClassIsland.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ClassIsland"; }; name = Debug; };
+		A00000000000000000000532 /* Release */ = {isa = XCBuildConfiguration; buildSettings = {BUNDLE_LOADER = "$(TEST_HOST)"; CODE_SIGN_STYLE = Automatic; GENERATE_INFOPLIST_FILE = YES; PRODUCT_BUNDLE_IDENTIFIER = cn.classisland.mobile.tests; PRODUCT_NAME = ClassIslandMobileTests; SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; TARGETED_DEVICE_FAMILY = "1,2"; TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ClassIsland.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ClassIsland"; }; name = Release; };
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A00000000000000000000601 = {isa = XCConfigurationList; buildConfigurations = (A00000000000000000000501, A00000000000000000000502, ); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+		A00000000000000000000611 = {isa = XCConfigurationList; buildConfigurations = (A00000000000000000000511, A00000000000000000000512, ); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+		A00000000000000000000621 = {isa = XCConfigurationList; buildConfigurations = (A00000000000000000000521, A00000000000000000000522, ); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+		A00000000000000000000631 = {isa = XCConfigurationList; buildConfigurations = (A00000000000000000000531, A00000000000000000000532, ); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+/* End XCConfigurationList section */
+	};
+	rootObject = A00000000000000000000001 /* Project object */;
+}

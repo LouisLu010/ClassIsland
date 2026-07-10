@@ -21,40 +21,39 @@ struct ScheduleView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            Group {
-                if model.profile == nil {
-                    emptyState
-                } else {
-                    scheduleContent
+        Group {
+            if model.profile == nil {
+                emptyState
+            } else {
+                scheduleContent
+            }
+        }
+        .background(Color(uiColor: .systemGroupedBackground))
+        .navigationTitle("课表")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItemGroup(placement: .topBarTrailing) {
+                Button("上一天", systemImage: "chevron.left") {
+                    shiftDate(by: -1)
                 }
-            }
-            .background(Color(uiColor: .systemGroupedBackground))
-            .navigationTitle("课表")
-            .toolbar {
-                ToolbarItemGroup(placement: .topBarTrailing) {
-                    Button("上一天", systemImage: "chevron.left") {
-                        shiftDate(by: -1)
-                    }
-                    .labelStyle(.iconOnly)
+                .labelStyle(.iconOnly)
 
-                    Button("今天", systemImage: "scope") {
-                        withAnimation(.snappy) {
-                            selectedDate = Calendar.current.startOfDay(for: Date())
-                            followsToday = true
-                        }
+                Button("今天", systemImage: "scope") {
+                    withAnimation(.snappy) {
+                        selectedDate = Calendar.current.startOfDay(for: Date())
+                        followsToday = true
                     }
-                    .labelStyle(.iconOnly)
-
-                    Button("下一天", systemImage: "chevron.right") {
-                        shiftDate(by: 1)
-                    }
-                    .labelStyle(.iconOnly)
                 }
+                .labelStyle(.iconOnly)
+
+                Button("下一天", systemImage: "chevron.right") {
+                    shiftDate(by: 1)
+                }
+                .labelStyle(.iconOnly)
             }
-            .refreshable {
-                await model.refreshCurrentSchedule()
-            }
+        }
+        .refreshable {
+            await model.refreshCurrentSchedule()
         }
         .fileImporter(
             isPresented: $isImporterPresented,

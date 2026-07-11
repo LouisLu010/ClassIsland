@@ -10,6 +10,7 @@ final class AppModel: ObservableObject {
     @Published private(set) var profile: ClassIslandProfile?
     @Published private(set) var profileFileName = ""
     @Published private(set) var currentSnapshot: ScheduleSnapshot?
+    @Published private(set) var isReadyForPresentation = false
     @Published private(set) var statusMessage = ""
     @Published private(set) var activityStatus = "尚未启动"
     @Published private(set) var reminderCapabilities: ReminderSurfaceCapabilities
@@ -24,6 +25,8 @@ final class AppModel: ObservableObject {
     @Published var settings: MobileSettings {
         didSet {
             guard hasBootstrapped else { return }
+            let onboardingStateChanged = oldValue.hasCompletedOnboarding
+                != settings.hasCompletedOnboarding
             let weatherSelectionChanged = oldValue.weatherCityID != settings.weatherCityID
             let weatherEnabledChanged = oldValue.weatherEnabled != settings.weatherEnabled
             if weatherSelectionChanged {
@@ -31,6 +34,7 @@ final class AppModel: ObservableObject {
                 nextWeatherRefreshDate = .distantPast
             }
             persistSettings()
+            guard runtimeIsEnabled, !onboardingStateChanged else { return }
             Task {
                 if settings.weatherEnabled && (weatherSelectionChanged || weatherEnabledChanged) {
                     await refreshCurrentSchedule()
@@ -60,9 +64,14 @@ final class AppModel: ObservableObject {
     private var weatherCitySearchToken = UUID()
     private var weatherRefreshPending = false
     private var pluginScheduleCheckpoint: MobilePluginScheduleCheckpoint?
+    private var isRuntimeSuspendedForOnboarding = false
 
     private static let weatherRefreshInterval: TimeInterval = 15 * 60
     private static let weatherRetryInterval: TimeInterval = 5 * 60
+
+    private var runtimeIsEnabled: Bool {
+        settings.hasCompletedOnboarding && !isRuntimeSuspendedForOnboarding
+    }
 
     init(
         repository: MobileRepository = MobileRepository(),
@@ -90,12 +99,23 @@ final class AppModel: ObservableObject {
     func bootstrap() async {
         loadPersistedDataIfNeeded()
         await refreshReminderAvailability()
+        guard runtimeIsEnabled else { return }
+        await activateRuntime()
+    }
+
+    private func activateRuntime() async {
+        guard runtimeIsEnabled else { return }
         lastActivitySignature = nil
         await refreshCurrentSchedule()
+        guard runtimeIsEnabled else { return }
         await pluginManager.bootstrap()
+        guard runtimeIsEnabled else { return }
         await refreshCurrentSchedule()
+        guard runtimeIsEnabled else { return }
         await refreshWeather(force: false)
+        guard runtimeIsEnabled else { return }
         await pluginManager.dispatch(event: .appActive, context: pluginContext())
+        guard runtimeIsEnabled else { return }
         await refreshCurrentSchedule()
         if monitorTask == nil {
             startMonitor()
@@ -105,13 +125,20 @@ final class AppModel: ObservableObject {
     func handleAppActive() async {
         loadPersistedDataIfNeeded()
         await refreshReminderAvailability()
+        guard runtimeIsEnabled else { return }
         lastActivitySignature = nil
         await refreshCurrentSchedule()
+        guard runtimeIsEnabled else { return }
         await pluginManager.bootstrap()
+        guard runtimeIsEnabled else { return }
         await refreshCurrentSchedule()
+        guard runtimeIsEnabled else { return }
         await refreshWeather(force: false, synchronizeActivity: false)
+        guard runtimeIsEnabled else { return }
         await refreshCurrentSchedule()
+        guard runtimeIsEnabled else { return }
         await pluginManager.dispatch(event: .appActive, context: pluginContext())
+        guard runtimeIsEnabled else { return }
         await refreshCurrentSchedule()
     }
 
@@ -126,7 +153,59 @@ final class AppModel: ObservableObject {
         settings = updated
         if surface == .systemNotification && isEnabled {
             lastNotificationSignature = nil
+            if !settings.hasCompletedOnboarding {
+                Task { [weak self] in
+                    await self?.requestNotificationAuthorizationForOnboarding()
+                }
+            }
         }
+    }
+
+    func requestNotificationAuthorizationForOnboarding() async {
+        guard settings.systemNotificationsEnabled else { return }
+        do {
+            let status = try await scheduleNotificationController.requestAuthorizationIfNeeded()
+            notificationAuthorizationStatus = status
+            notificationStatus = systemNotificationStatusText(for: status)
+        } catch {
+            notificationStatus = "授权失败"
+            statusMessage = "申请系统通知权限失败：\(error.localizedDescription)"
+        }
+    }
+
+    func completeOnboarding() {
+        guard !settings.hasCompletedOnboarding else { return }
+        isRuntimeSuspendedForOnboarding = false
+        var updated = settings
+        updated.hasCompletedOnboarding = true
+        settings = updated
+        Task { [weak self] in
+            guard let self else { return }
+            await self.refreshReminderAvailability()
+            await self.activateRuntime()
+        }
+    }
+
+    func restartOnboarding() async {
+        guard settings.hasCompletedOnboarding, !isRuntimeSuspendedForOnboarding else { return }
+        isRuntimeSuspendedForOnboarding = true
+        monitorTask?.cancel()
+        monitorTask = nil
+        boundaryRefreshTask?.cancel()
+        boundaryRefreshTask = nil
+        scheduledBoundaryDate = nil
+        scheduledRefreshDate = nil
+        hasReconciledBackgroundRefresh = false
+        ScheduleRefreshScheduler.cancel()
+        await liveActivityController.endAll()
+        await scheduleNotificationController.cancelAll()
+        lastActivitySignature = nil
+        lastNotificationSignature = nil
+        activityStatus = "设置向导进行中"
+        notificationStatus = settings.systemNotificationsEnabled ? "设置向导进行中" : "未启用"
+        var updated = settings
+        updated.hasCompletedOnboarding = false
+        settings = updated
     }
 
     func refreshReminderAvailability() async {
@@ -156,8 +235,12 @@ final class AppModel: ObservableObject {
     func handleBackgroundRefresh() async {
         scheduledRefreshDate = nil
         hasReconciledBackgroundRefresh = false
-        await pluginManager.bootstrap()
         loadPersistedDataIfNeeded()
+        guard runtimeIsEnabled else {
+            ScheduleRefreshScheduler.cancel()
+            return
+        }
+        await pluginManager.bootstrap()
         await refreshCurrentSchedule(
             allowStartingActivity: false,
             awaitPluginEvents: true
@@ -211,6 +294,7 @@ final class AppModel: ObservableObject {
             startupMessages.append("读取插件事件状态失败：\(error.localizedDescription)")
         }
         hasBootstrapped = true
+        isReadyForPresentation = true
         statusMessage = startupMessages.joined(separator: "\n")
     }
 
@@ -336,6 +420,7 @@ final class AppModel: ObservableObject {
         allowStartingActivity: Bool = true,
         awaitPluginEvents: Bool = false
     ) async {
+        guard runtimeIsEnabled else { return }
         guard let profile else {
             currentSnapshot = nil
             if pluginScheduleCheckpoint != nil {

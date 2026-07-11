@@ -514,6 +514,16 @@ struct SettingsView: View {
                 destination: URL(string: "https://github.com/ClassIsland/ClassIsland")!
             )
 
+            SettingsSectionTitle("设置向导", systemImage: "wand.and.stars")
+
+            SettingsActionCard(
+                systemImage: "arrow.counterclockwise",
+                title: "重新运行设置向导",
+                description: "重新检查基本、外观与提醒设置，不会删除课表或插件数据。"
+            ) {
+                Task { await model.restartOnboarding() }
+            }
+
             Text("Copyright © 2023–\(Calendar.current.component(.year, from: Date())) HelloWRC")
                 .font(.footnote)
                 .foregroundStyle(.secondary)

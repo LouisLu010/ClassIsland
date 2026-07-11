@@ -24,6 +24,19 @@ final class LiveActivityLayoutTests: XCTestCase {
 
         XCTAssertEqual(decoded.liveActivityLayout, .default)
         XCTAssertEqual(decoded.timeOffsetSeconds, 0)
+        XCTAssertFalse(decoded.hasCompletedOnboarding)
+    }
+
+    func testOnboardingCompletionRoundTripsThroughSettings() throws {
+        var settings = MobileSettings()
+        settings.hasCompletedOnboarding = true
+
+        let decoded = try JSONDecoder().decode(
+            MobileSettings.self,
+            from: JSONEncoder().encode(settings)
+        )
+
+        XCTAssertTrue(decoded.hasCompletedOnboarding)
     }
 
     func testLegacyVerboseComponentEncodingMigrates() throws {

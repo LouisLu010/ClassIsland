@@ -53,6 +53,7 @@
 		A00000000000000000000264 /* MobileRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000145 /* MobileRepositoryTests.swift */; };
 		A00000000000000000000265 /* ScheduleNotificationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000146 /* ScheduleNotificationController.swift */; };
 		A00000000000000000000266 /* ScheduleNotificationPlannerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000147 /* ScheduleNotificationPlannerTests.swift */; };
+		A00000000000000000000267 /* MobileOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000148 /* MobileOnboardingView.swift */; };
 		A00000000000000000000240 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000120 /* Assets.xcassets */; };
 		A00000000000000000000241 /* SampleProfile.json in Resources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000121 /* SampleProfile.json */; };
 		A00000000000000000000250 /* ClassIslandLiveActivity.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = A00000000000000000000091 /* ClassIslandLiveActivity.appex */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -145,6 +146,7 @@
 		A00000000000000000000145 /* MobileRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileRepositoryTests.swift; sourceTree = "<group>"; };
 		A00000000000000000000146 /* ScheduleNotificationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleNotificationController.swift; sourceTree = "<group>"; };
 		A00000000000000000000147 /* ScheduleNotificationPlannerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleNotificationPlannerTests.swift; sourceTree = "<group>"; };
+		A00000000000000000000148 /* MobileOnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileOnboardingView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -205,7 +207,7 @@
 		};
 		A00000000000000000000011 /* Models */ = {isa = PBXGroup; children = (A00000000000000000000103, A00000000000000000000104, A00000000000000000000136, ); path = Models; sourceTree = "<group>"; };
 		A00000000000000000000012 /* Services */ = {isa = PBXGroup; children = (A00000000000000000000105, A00000000000000000000106, A00000000000000000000107, A00000000000000000000108, A00000000000000000000118, A00000000000000000000119, A00000000000000000000132, A00000000000000000000137, A00000000000000000000138, A00000000000000000000139, A00000000000000000000140, A00000000000000000000146, ); path = Services; sourceTree = "<group>"; };
-		A00000000000000000000013 /* Views */ = {isa = PBXGroup; children = (A00000000000000000000109, A00000000000000000000110, A00000000000000000000111, A00000000000000000000126, A00000000000000000000127, A00000000000000000000130, A00000000000000000000133, A00000000000000000000141, A00000000000000000000142, ); path = Views; sourceTree = "<group>"; };
+		A00000000000000000000013 /* Views */ = {isa = PBXGroup; children = (A00000000000000000000109, A00000000000000000000110, A00000000000000000000111, A00000000000000000000126, A00000000000000000000127, A00000000000000000000130, A00000000000000000000133, A00000000000000000000141, A00000000000000000000142, A00000000000000000000148, ); path = Views; sourceTree = "<group>"; };
 		A00000000000000000000014 /* Shared */ = {isa = PBXGroup; children = (A00000000000000000000112, A00000000000000000000113, A00000000000000000000114, A00000000000000000000129, A00000000000000000000134, A00000000000000000000143, ); path = Shared; sourceTree = "<group>"; };
 		A00000000000000000000015 /* LiveActivity */ = {isa = PBXGroup; children = (A00000000000000000000115, A00000000000000000000116, ); path = LiveActivity; sourceTree = "<group>"; };
 		A00000000000000000000016 /* Resources */ = {isa = PBXGroup; children = (A00000000000000000000120, A00000000000000000000121, ); path = Resources; sourceTree = "<group>"; };
@@ -307,7 +309,7 @@
 				A00000000000000000000227, A00000000000000000000228, A00000000000000000000234,
 				A00000000000000000000235, A00000000000000000000236, A00000000000000000000237,
 				A00000000000000000000238, A00000000000000000000239, A00000000000000000000260,
-				A00000000000000000000261, A00000000000000000000265,
+				A00000000000000000000261, A00000000000000000000265, A00000000000000000000267,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

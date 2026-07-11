@@ -12,7 +12,20 @@ struct ClassIslandMobileApp: App {
 
     var body: some Scene {
         WindowGroup {
-            RootView()
+            Group {
+                if !model.isReadyForPresentation {
+                    ZStack {
+                        Color(uiColor: .systemGroupedBackground)
+                            .ignoresSafeArea()
+                        ProgressView()
+                            .controlSize(.large)
+                    }
+                } else if model.settings.hasCompletedOnboarding {
+                    RootView()
+                } else {
+                    MobileOnboardingView()
+                }
+            }
                 .environmentObject(model)
                 .environmentObject(model.pluginManager)
                 .tint(model.settings.accentColor)

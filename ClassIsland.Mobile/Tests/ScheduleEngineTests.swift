@@ -188,6 +188,20 @@ final class ScheduleEngineTests: XCTestCase {
         )
     }
 
+    func testSystemNotificationsScheduleAnIndependentDailyBackgroundRefresh() throws {
+        let now = try date("2026-07-06T08:20:00Z")
+        var settings = MobileSettings()
+        settings.reminderSurfaces = [.systemNotification]
+
+        XCTAssertEqual(
+            ScheduleRefreshPolicy.notificationRefreshDate(settings: settings, now: now),
+            now.addingTimeInterval(ScheduleRefreshPolicy.notificationRefreshInterval)
+        )
+
+        settings.reminderSurfaces = []
+        XCTAssertNil(ScheduleRefreshPolicy.notificationRefreshDate(settings: settings, now: now))
+    }
+
     func testBackgroundRefreshNeverRequestsADateInThePast() throws {
         let profile = try decodeProfile(firstWeekDivision: 0, secondWeekDivision: nil)
         let snapshot = ScheduleEngine().snapshot(

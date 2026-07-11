@@ -12,6 +12,8 @@ enum LiveActivityRegion: String, Codable, CaseIterable, Hashable, Identifiable, 
     case compactLeading
     case compactTrailing
     case minimal
+    case notificationTitle
+    case notificationBody
 
     var id: Self { self }
 
@@ -28,14 +30,16 @@ enum LiveActivityRegion: String, Codable, CaseIterable, Hashable, Identifiable, 
         case .compactLeading: "左侧紧凑区"
         case .compactTrailing: "右侧紧凑区"
         case .minimal: "最小视图"
+        case .notificationTitle: "通知标题"
+        case .notificationBody: "通知正文"
         }
     }
 
     var maximumComponentCount: Int {
         switch self {
         case .compactLeading, .compactTrailing, .minimal: 1
-        case .expandedLeading, .expandedCenter, .expandedTrailing: 2
-        case .lockHeader, .lockPrimary, .lockProgress, .lockFooter, .expandedBottom: 4
+        case .expandedLeading, .expandedCenter, .expandedTrailing, .notificationTitle: 2
+        case .lockHeader, .lockPrimary, .lockProgress, .lockFooter, .expandedBottom, .notificationBody: 4
         }
     }
 }
@@ -309,6 +313,13 @@ struct LiveActivityLayout: Codable, Equatable, Hashable, Sendable {
         storage[region] ?? []
     }
 
+    var activityKitPayloadLayout: LiveActivityLayout {
+        var result = self
+        result.setComponents([], in: .notificationTitle)
+        result.setComponents([], in: .notificationBody)
+        return result
+    }
+
     static func == (lhs: LiveActivityLayout, rhs: LiveActivityLayout) -> Bool {
         LiveActivityRegion.allCases.allSatisfy {
             lhs.components(in: $0) == rhs.components(in: $0)
@@ -424,6 +435,13 @@ struct LiveActivityLayout: Codable, Equatable, Hashable, Sendable {
         ],
         .minimal: [
             LiveActivityComponentConfiguration(kind: .status, isEmphasized: true, showsIcon: true)
+        ],
+        .notificationTitle: [
+            LiveActivityComponentConfiguration(kind: .status, isEmphasized: true, showsIcon: false)
+        ],
+        .notificationBody: [
+            LiveActivityComponentConfiguration(kind: .currentLesson, showsIcon: false),
+            LiveActivityComponentConfiguration(kind: .nextLesson, showsIcon: false)
         ]
     ])
 }

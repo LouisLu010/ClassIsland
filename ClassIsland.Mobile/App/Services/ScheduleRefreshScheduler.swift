@@ -6,6 +6,7 @@ enum ScheduleRefreshPolicy {
     static let minimumForegroundDelay: TimeInterval = 0.05
     static let backgroundRetryDelay: TimeInterval = 1
     static let liveActivityStaleLeeway: TimeInterval = 1
+    static let notificationRefreshInterval: TimeInterval = 24 * 60 * 60
 
     static func foregroundRefreshDate(
         for snapshot: ScheduleSnapshot,
@@ -30,6 +31,14 @@ enum ScheduleRefreshPolicy {
             return nil
         }
         return boundary > now ? boundary : now.addingTimeInterval(backgroundRetryDelay)
+    }
+
+    static func notificationRefreshDate(
+        settings: MobileSettings,
+        now: Date = Date()
+    ) -> Date? {
+        guard settings.systemNotificationsEnabled else { return nil }
+        return now.addingTimeInterval(notificationRefreshInterval)
     }
 }
 

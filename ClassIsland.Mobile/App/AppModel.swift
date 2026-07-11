@@ -1,6 +1,7 @@
 import ActivityKit
 import Combine
 import Foundation
+import UserNotifications
 
 @MainActor
 final class AppModel: ObservableObject {
@@ -11,6 +12,9 @@ final class AppModel: ObservableObject {
     @Published private(set) var currentSnapshot: ScheduleSnapshot?
     @Published private(set) var statusMessage = ""
     @Published private(set) var activityStatus = "尚未启动"
+    @Published private(set) var reminderCapabilities: ReminderSurfaceCapabilities
+    @Published private(set) var notificationAuthorizationStatus: UNAuthorizationStatus = .notDetermined
+    @Published private(set) var notificationStatus = "尚未授权"
     @Published private(set) var weather: WeatherSnapshot?
     @Published private(set) var weatherStatusMessage = ""
     @Published private(set) var isRefreshingWeather = false
@@ -41,6 +45,7 @@ final class AppModel: ObservableObject {
     private let repository: MobileRepository
     private let engine: ScheduleEngine
     private let liveActivityController: LiveActivityController
+    private let scheduleNotificationController: ScheduleNotificationController
     private let weatherService: WeatherService
     private var hasBootstrapped = false
     private var profileSourceData: Data?
@@ -48,6 +53,7 @@ final class AppModel: ObservableObject {
     private var boundaryRefreshTask: Task<Void, Never>?
     private var scheduledBoundaryDate: Date?
     private var lastActivitySignature: ActivitySignature?
+    private var lastNotificationSignature: NotificationSignature?
     private var scheduledRefreshDate: Date?
     private var hasReconciledBackgroundRefresh = false
     private var nextWeatherRefreshDate = Date.distantPast
@@ -62,14 +68,17 @@ final class AppModel: ObservableObject {
         repository: MobileRepository = MobileRepository(),
         engine: ScheduleEngine = ScheduleEngine(),
         liveActivityController: LiveActivityController? = nil,
+        scheduleNotificationController: ScheduleNotificationController? = nil,
         weatherService: WeatherService = WeatherService(),
         pluginManager: MobilePluginManager? = nil
     ) {
         self.repository = repository
         self.engine = engine
         self.liveActivityController = liveActivityController ?? .shared
+        self.scheduleNotificationController = scheduleNotificationController ?? .shared
         self.weatherService = weatherService
         self.pluginManager = pluginManager ?? MobilePluginManager()
+        reminderCapabilities = .current()
         settings = MobileSettings()
     }
 
@@ -79,8 +88,11 @@ final class AppModel: ObservableObject {
     }
 
     func bootstrap() async {
-        await pluginManager.bootstrap()
         loadPersistedDataIfNeeded()
+        await refreshReminderAvailability()
+        lastActivitySignature = nil
+        await refreshCurrentSchedule()
+        await pluginManager.bootstrap()
         await refreshCurrentSchedule()
         await refreshWeather(force: false)
         await pluginManager.dispatch(event: .appActive, context: pluginContext())
@@ -91,12 +103,51 @@ final class AppModel: ObservableObject {
     }
 
     func handleAppActive() async {
+        loadPersistedDataIfNeeded()
+        await refreshReminderAvailability()
+        lastActivitySignature = nil
+        await refreshCurrentSchedule()
         await pluginManager.bootstrap()
         await refreshCurrentSchedule()
         await refreshWeather(force: false, synchronizeActivity: false)
         await refreshCurrentSchedule()
         await pluginManager.dispatch(event: .appActive, context: pluginContext())
         await refreshCurrentSchedule()
+    }
+
+    func setReminderSurface(_ surface: ReminderSurface, isEnabled: Bool) {
+        guard !isEnabled || reminderCapabilities.supports(surface) else { return }
+        var updated = settings
+        if isEnabled {
+            updated.reminderSurfaces.insert(surface)
+        } else {
+            updated.reminderSurfaces.remove(surface)
+        }
+        settings = updated
+    }
+
+    func refreshReminderAvailability() async {
+        let previousCapabilities = reminderCapabilities
+        let previousAuthorizationStatus = notificationAuthorizationStatus
+        let capabilities = ReminderSurfaceCapabilities.current()
+        let authorizationStatus = await scheduleNotificationController.authorizationStatus()
+
+        reminderCapabilities = capabilities
+        notificationAuthorizationStatus = authorizationStatus
+        notificationStatus = systemNotificationStatusText(for: authorizationStatus)
+
+        if previousCapabilities != capabilities
+            || previousAuthorizationStatus != authorizationStatus {
+            lastActivitySignature = nil
+            lastNotificationSignature = nil
+        }
+
+        let normalizedSelection = capabilities.normalizedSelection(settings.reminderSurfaces)
+        if normalizedSelection != settings.reminderSurfaces {
+            var updated = settings
+            updated.reminderSurfaces = normalizedSelection
+            settings = updated
+        }
     }
 
     func handleBackgroundRefresh() async {
@@ -266,8 +317,11 @@ final class AppModel: ObservableObject {
             lastActivitySignature = nil
             reconcileForegroundRefresh(snapshot: nil, now: Date())
             await liveActivityController.endAll()
+            await scheduleNotificationController.cancelAll()
+            lastNotificationSignature = nil
             reconcileBackgroundRefresh(snapshot: nil, now: Date())
             activityStatus = "已停止"
+            notificationStatus = settings.systemNotificationsEnabled ? "等待导入课表" : "未启用"
             statusMessage = "本机课表已删除"
         } catch {
             statusMessage = "删除失败：\(error.localizedDescription)"
@@ -296,6 +350,10 @@ final class AppModel: ObservableObject {
                 await liveActivityController.endAll()
                 lastActivitySignature = signature
             }
+            await reconcileSystemNotifications(
+                now: now,
+                requestAuthorizationIfNeeded: allowStartingActivity
+            )
             reconcileBackgroundRefresh(snapshot: nil, now: now)
             activityStatus = "等待导入课表"
             return
@@ -336,6 +394,10 @@ final class AppModel: ObservableObject {
                 statusMessage = error.localizedDescription
             }
         }
+        await reconcileSystemNotifications(
+            now: now,
+            requestAuthorizationIfNeeded: allowStartingActivity
+        )
         reconcileBackgroundRefresh(snapshot: snapshot, now: now)
         if let pluginEvent {
             let context = pluginContext(schedule: snapshot, now: now)
@@ -649,6 +711,78 @@ final class AppModel: ObservableObject {
         }
     }
 
+    private func notificationSnapshots(now: Date) -> [ScheduleSnapshot] {
+        guard let profile else { return [] }
+        var calendar = Calendar.current
+        calendar.locale = Locale(identifier: "zh_Hans_CN")
+        let courseNow = settings.timeOffsetSeconds == 0
+            ? now
+            : now.addingTimeInterval(settings.timeOffsetSeconds)
+        let startOfToday = calendar.startOfDay(for: courseNow)
+        return (0..<7).compactMap { dayOffset in
+            guard let date = calendar.date(byAdding: .day, value: dayOffset, to: startOfToday) else {
+                return nil
+            }
+            return engine.snapshot(
+                profile: profile,
+                settings: settings,
+                at: now,
+                for: date,
+                calendar: calendar
+            )
+        }
+    }
+
+    private func reconcileSystemNotifications(
+        now: Date,
+        requestAuthorizationIfNeeded: Bool
+    ) async {
+        let snapshots = notificationSnapshots(now: now)
+        let pluginPresentation = pluginManager.activityPresentation(
+            context: pluginContext(schedule: currentSnapshot, now: now)
+        )
+        let signature = NotificationSignature(
+            snapshots: snapshots,
+            settings: settings,
+            weather: activityWeather,
+            plugin: pluginPresentation
+        )
+        guard signature != lastNotificationSignature else { return }
+
+        do {
+            let result = try await scheduleNotificationController.synchronize(
+                snapshots: snapshots,
+                settings: settings,
+                weather: activityWeather,
+                plugin: pluginPresentation,
+                now: now,
+                requestAuthorizationIfNeeded: requestAuthorizationIfNeeded
+            )
+            notificationAuthorizationStatus = result.authorizationStatus
+            notificationStatus = systemNotificationStatusText(for: result.authorizationStatus)
+            if result.wasApplied {
+                lastNotificationSignature = signature
+            }
+        } catch {
+            notificationStatus = "调度失败"
+            statusMessage = "系统通知调度失败：\(error.localizedDescription)"
+        }
+    }
+
+    private func systemNotificationStatusText(
+        for authorizationStatus: UNAuthorizationStatus
+    ) -> String {
+        guard settings.systemNotificationsEnabled else { return "未启用" }
+        return switch authorizationStatus {
+        case .authorized: "已授权"
+        case .provisional: "临时授权"
+        case .ephemeral: "临时授权"
+        case .denied: "系统已关闭"
+        case .notDetermined: "等待授权"
+        @unknown default: "状态未知"
+        }
+    }
+
     private func reconcileBackgroundRefresh(snapshot: ScheduleSnapshot?, now: Date) {
         let hasActiveActivity = !Activity<ScheduleActivityAttributes>.activities.isEmpty
         let scheduleTargetDate = snapshot.flatMap {
@@ -662,7 +796,11 @@ final class AppModel: ObservableObject {
         let weatherTargetDate = settings.weatherEnabled && hasActiveActivity
             ? max(nextWeatherRefreshDate, now.addingTimeInterval(1))
             : nil
-        let targetDate = [scheduleTargetDate, weatherTargetDate]
+        let notificationTargetDate = ScheduleRefreshPolicy.notificationRefreshDate(
+            settings: settings,
+            now: now
+        )
+        let targetDate = [scheduleTargetDate, weatherTargetDate, notificationTargetDate]
             .compactMap { $0 }
             .min()
 
@@ -754,8 +892,31 @@ private struct ActivitySignature: Equatable {
         keepAfterSchool = settings.keepAfterSchoolActivity
         timeOffsetSeconds = settings.timeOffsetSeconds
         accentRGBA = settings.activityAccentRGBA
-        layout = settings.liveActivityLayout
+        layout = settings.liveActivityLayout.activityKitPayloadLayout
         weatherEnabled = settings.weatherEnabled
+        self.weather = weather
+        self.plugin = plugin
+    }
+}
+
+private struct NotificationSignature: Equatable {
+    let snapshots: [ScheduleSnapshot]
+    let enabled: Bool
+    let showTeacher: Bool
+    let layout: LiveActivityLayout
+    let weather: WeatherPresentation?
+    let plugin: PluginActivityPresentation?
+
+    init(
+        snapshots: [ScheduleSnapshot],
+        settings: MobileSettings,
+        weather: WeatherPresentation?,
+        plugin: PluginActivityPresentation?
+    ) {
+        self.snapshots = snapshots
+        enabled = settings.systemNotificationsEnabled
+        showTeacher = settings.showTeacher
+        layout = settings.liveActivityLayout
         self.weather = weather
         self.plugin = plugin
     }

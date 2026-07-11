@@ -24,7 +24,7 @@ enum AppPage: String, CaseIterable, Hashable, Identifiable {
         case .weather: "天气"
         case .storage: "存储"
         case .appearance: "外观"
-        case .components: "灵动岛组件"
+        case .components: "提醒组件"
         case .notification: "提醒"
         case .plugins: "插件"
         case .about: "关于 ClassIsland"

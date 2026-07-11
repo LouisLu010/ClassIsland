@@ -650,7 +650,11 @@ final class MobilePluginNotificationDelegate: NSObject, UNUserNotificationCenter
         _ center: UNUserNotificationCenter,
         willPresent notification: UNNotification
     ) async -> UNNotificationPresentationOptions {
-        guard notification.request.identifier.hasPrefix("mobile-plugin.") else { return [] }
+        let identifier = notification.request.identifier
+        guard identifier.hasPrefix("mobile-plugin.")
+                || identifier.hasPrefix(ScheduleNotificationIdentifier.prefix) else {
+            return []
+        }
         return [.banner, .sound]
     }
 }

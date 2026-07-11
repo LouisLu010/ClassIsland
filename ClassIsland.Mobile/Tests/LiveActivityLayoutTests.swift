@@ -15,6 +15,8 @@ final class LiveActivityLayoutTests: XCTestCase {
         XCTAssertTrue(
             decoded.liveActivityLayout.components(in: .lockHeader).contains { $0.kind == .weather }
         )
+        XCTAssertEqual(decoded.liveActivityLayout.components(in: .notificationTitle).count, 1)
+        XCTAssertEqual(decoded.liveActivityLayout.components(in: .notificationBody).count, 2)
     }
 
     func testOlderSettingsReceiveDefaultLayout() throws {
@@ -136,7 +138,7 @@ final class LiveActivityLayoutTests: XCTestCase {
             updatedAt: Date(),
             timeOffsetSeconds: 2.5,
             accentRGBA: 0x05ABE8FF,
-            layout: .default,
+            layout: LiveActivityLayout.default.activityKitPayloadLayout,
             weather: weatherPresentation
         )
 
@@ -177,7 +179,7 @@ final class LiveActivityLayoutTests: XCTestCase {
             updatedAt: Date(),
             timeOffsetSeconds: 2.5,
             accentRGBA: 0x05ABE8FF,
-            layout: layout,
+            layout: layout.activityKitPayloadLayout,
             weather: weatherPresentation,
             plugin: PluginActivityPresentation(
                 title: String(repeating: "标题", count: 24),
@@ -193,6 +195,14 @@ final class LiveActivityLayoutTests: XCTestCase {
         )
 
         XCTAssertLessThan(data.count + attributes.count, 4_096)
+    }
+
+    func testActivityKitPayloadOmitsNotificationOnlyRegions() {
+        let payloadLayout = LiveActivityLayout.default.activityKitPayloadLayout
+
+        XCTAssertTrue(payloadLayout.components(in: .notificationTitle).isEmpty)
+        XCTAssertTrue(payloadLayout.components(in: .notificationBody).isEmpty)
+        XCTAssertFalse(payloadLayout.components(in: .lockHeader).isEmpty)
     }
 
     func testLegacyActivityStateReceivesDefaultLayout() throws {

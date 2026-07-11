@@ -5,6 +5,7 @@ private enum LiveActivityEditorSurface: String, CaseIterable, Identifiable {
     case expanded
     case compact
     case minimal
+    case notification
 
     var id: Self { self }
 
@@ -14,6 +15,7 @@ private enum LiveActivityEditorSurface: String, CaseIterable, Identifiable {
         case .expanded: "展开"
         case .compact: "紧凑"
         case .minimal: "最小"
+        case .notification: "通知"
         }
     }
 
@@ -23,6 +25,7 @@ private enum LiveActivityEditorSurface: String, CaseIterable, Identifiable {
         case .expanded: "platter.filled.top.iphone"
         case .compact: "capsule"
         case .minimal: "circle"
+        case .notification: "bell"
         }
     }
 
@@ -32,6 +35,7 @@ private enum LiveActivityEditorSurface: String, CaseIterable, Identifiable {
         case .expanded: [.expandedLeading, .expandedCenter, .expandedTrailing, .expandedBottom]
         case .compact: [.compactLeading, .compactTrailing]
         case .minimal: [.minimal]
+        case .notification: [.notificationTitle, .notificationBody]
         }
     }
 }
@@ -67,7 +71,7 @@ struct LiveActivityComponentsEditorView: View {
             componentList
         }
         .background(Color(uiColor: .systemGroupedBackground).ignoresSafeArea())
-        .navigationTitle("灵动岛组件")
+        .navigationTitle("提醒组件")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
@@ -104,7 +108,14 @@ struct LiveActivityComponentsEditorView: View {
         }
         .sheet(item: $addingRegion) { region in
             ComponentLibraryView(region: region) { kind in
-                layout.add(LiveActivityComponentConfiguration(kind: kind), to: region)
+                let isNotificationRegion = region == .notificationTitle || region == .notificationBody
+                layout.add(
+                    LiveActivityComponentConfiguration(
+                        kind: kind,
+                        showsIcon: !isNotificationRegion
+                    ),
+                    to: region
+                )
             }
         }
         .sheet(item: $editingComponent) { context in
@@ -310,8 +321,13 @@ private struct LiveActivityComponentSettingsSheet: View {
                 }
 
                 Section("外观") {
-                    Toggle("显示图标", isOn: $component.showsIcon)
-                    Toggle("使用主题色强调", isOn: $component.isEmphasized)
+                    if region != .notificationTitle && region != .notificationBody {
+                        Toggle("显示图标", isOn: $component.showsIcon)
+                        Toggle("使用主题色强调", isOn: $component.isEmphasized)
+                    } else {
+                        Text("系统通知由 iOS 统一控制字体与图标样式。")
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
             .navigationTitle("组件设置")
@@ -343,11 +359,20 @@ private struct ComponentLibraryView: View {
 
     private let columns = [GridItem(.adaptive(minimum: 140, maximum: 220), spacing: 10)]
 
+    private var availableKinds: [LiveActivityComponentKind] {
+        if region == .notificationTitle || region == .notificationBody {
+            return LiveActivityComponentKind.allCases.filter {
+                $0 != .progress && $0 != .weather && $0 != .plugin
+            }
+        }
+        return LiveActivityComponentKind.allCases
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
                 LazyVGrid(columns: columns, spacing: 10) {
-                    ForEach(LiveActivityComponentKind.allCases) { kind in
+                    ForEach(availableKinds) { kind in
                         Button {
                             onSelect(kind)
                             dismiss()
@@ -410,6 +435,8 @@ private struct LiveActivityLayoutPreview: View {
                 compactPreview
             case .minimal:
                 minimalPreview
+            case .notification:
+                notificationPreview
             }
         }
         .frame(maxWidth: .infinity)
@@ -423,7 +450,7 @@ private struct LiveActivityLayoutPreview: View {
         }
         .environment(\.dynamicTypeSize, .medium)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("实时活动布局预览")
+        .accessibilityLabel("提醒布局预览")
     }
 
     private var previewBackground: some View {
@@ -501,6 +528,46 @@ private struct LiveActivityLayoutPreview: View {
             .frame(width: 38, height: 38)
             .background(Color.black)
             .clipShape(Circle())
+    }
+
+    private var notificationPreview: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 6) {
+                Image(systemName: "app.badge.fill")
+                    .foregroundStyle(Color.accentColor)
+                Text("ClassIsland")
+                    .font(.caption2.weight(.semibold))
+                Spacer()
+                Text("现在")
+                    .font(.caption2)
+                    .foregroundStyle(.white.opacity(0.62))
+            }
+
+            notificationPreviewLine(.notificationTitle)
+                .fontWeight(.semibold)
+            notificationPreviewLine(.notificationBody)
+                .foregroundStyle(.white.opacity(0.82))
+        }
+        .padding(12)
+        .frame(maxWidth: 420, alignment: .leading)
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+        .padding(.horizontal, 14)
+        .padding(.top, 18)
+    }
+
+    private func notificationPreviewLine(_ region: LiveActivityRegion) -> some View {
+        HStack(spacing: 4) {
+            let components = layout.components(in: region)
+            ForEach(Array(components.enumerated()), id: \.element.id) { index, component in
+                if index > 0 {
+                    Text("·")
+                        .foregroundStyle(.white.opacity(0.55))
+                }
+                PreviewComponentView(component: component, presentation: .full)
+            }
+        }
+        .lineLimit(1)
     }
 
     private func previewLine(_ region: LiveActivityRegion) -> some View {

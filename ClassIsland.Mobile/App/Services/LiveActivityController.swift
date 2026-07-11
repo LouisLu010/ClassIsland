@@ -73,7 +73,7 @@ final class LiveActivityController {
             updatedAt: Date(),
             timeOffsetSeconds: 0,
             accentRGBA: 0x05ABE8FF,
-            layout: .default,
+            layout: LiveActivityLayout.default.activityKitPayloadLayout,
             weather: nil,
             plugin: nil
         )
@@ -156,7 +156,7 @@ final class LiveActivityController {
             updatedAt: now,
             timeOffsetSeconds: snapshot.timeOffsetSeconds,
             accentRGBA: settings.activityAccentRGBA,
-            layout: settings.liveActivityLayout,
+            layout: settings.liveActivityLayout.activityKitPayloadLayout,
             weather: settings.weatherEnabled ? weather : nil,
             plugin: plugin
         )

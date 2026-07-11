@@ -279,32 +279,70 @@ struct SettingsView: View {
 
     private var notificationPage: some View {
         SettingsPageLayout(title: page.title) {
-            SettingsSectionTitle("实时活动与灵动岛", systemImage: "bell.badge")
+            SettingsSectionTitle("提醒显示位置", systemImage: "bell.badge")
 
             SettingsCard(
                 systemImage: "platter.filled.top.iphone",
-                title: "启用实时活动",
-                description: "在锁屏显示当前课程，并在支持的 iPhone 上显示灵动岛。"
+                title: "灵动岛",
+                description: reminderSurfaceDescription(.dynamicIsland)
             ) {
-                Toggle("启用实时活动", isOn: $model.settings.liveActivitiesEnabled)
+                Toggle("灵动岛", isOn: reminderSurfaceBinding(.dynamicIsland))
                     .labelsHidden()
             }
+            .disabled(!model.reminderCapabilities.supports(.dynamicIsland))
+            .opacity(model.reminderCapabilities.supports(.dynamicIsland) ? 1 : 0.5)
+
+            SettingsCard(
+                systemImage: "iphone",
+                title: "实时活动",
+                description: reminderSurfaceDescription(.liveActivity)
+            ) {
+                Toggle("实时活动", isOn: reminderSurfaceBinding(.liveActivity))
+                    .labelsHidden()
+            }
+            .disabled(!model.reminderCapabilities.supports(.liveActivity))
+            .opacity(model.reminderCapabilities.supports(.liveActivity) ? 1 : 0.5)
+
+            SettingsCard(
+                systemImage: "bell",
+                title: "系统通知",
+                description: "在上下课时发送系统通知，适用于没有灵动岛或实时活动不可用的设备。"
+            ) {
+                Toggle("系统通知", isOn: reminderSurfaceBinding(.systemNotification))
+                    .labelsHidden()
+            }
+            .disabled(!model.reminderCapabilities.supports(.systemNotification))
+            .opacity(model.reminderCapabilities.supports(.systemNotification) ? 1 : 0.5)
+
+            SettingsInfoBanner(
+                "灵动岛和锁屏实时活动由同一个 ActivityKit 活动提供，任一选项启用时都会同步同一份课程状态。"
+            )
+
+            SettingsSectionTitle("提醒行为", systemImage: "clock.badge.checkmark")
 
             SettingsCard(
                 systemImage: "clock.badge.checkmark",
                 title: "放学后保留",
-                description: "当天课程结束后继续保留放学状态。"
+                description: "当天课程结束后继续保留锁屏实时活动和灵动岛状态。"
             ) {
                 Toggle("放学后保留", isOn: $model.settings.keepAfterSchoolActivity)
                     .labelsHidden()
             }
+            .disabled(!model.settings.liveActivitiesEnabled)
+            .opacity(model.settings.liveActivitiesEnabled ? 1 : 0.5)
 
-            SettingsCard(
+            SettingsPanel(
                 systemImage: "waveform.path.ecg",
-                title: "当前状态",
-                description: "ActivityKit 与当前课表的同步状态。"
+                title: "提醒状态",
+                description: "当前设备的 ActivityKit 与通知权限状态。"
             ) {
-                ActivityStatusBadge(text: model.activityStatus)
+                SettingsInlineRow(title: "实时活动") {
+                    ActivityStatusBadge(text: model.activityStatus)
+                }
+                Divider()
+                SettingsInlineRow(title: "系统通知") {
+                    ActivityStatusBadge(text: model.notificationStatus)
+                }
             }
 
             SettingsPanel(
@@ -317,8 +355,38 @@ struct SettingsView: View {
             }
 
             SettingsInfoBanner(
-                "课程倒计时由系统持续显示；课程边界更新受后台刷新调度影响。"
+                "系统通知会按系统数量上限预先安排最多未来 7 天的上下课提醒；标题和正文可在“提醒组件”页面编辑。"
             )
+        }
+    }
+
+    private func reminderSurfaceBinding(_ surface: ReminderSurface) -> Binding<Bool> {
+        Binding(
+            get: { model.settings.reminderSurfaces.contains(surface) },
+            set: { model.setReminderSurface(surface, isEnabled: $0) }
+        )
+    }
+
+    private func reminderSurfaceDescription(_ surface: ReminderSurface) -> String {
+        switch surface {
+        case .dynamicIsland:
+            if !model.reminderCapabilities.isDynamicIslandHardwareKnown {
+                return "正在检测此设备是否支持灵动岛。"
+            }
+            if !model.reminderCapabilities.supportsDynamicIslandHardware {
+                return "此设备不支持灵动岛，选项不可用。"
+            }
+            if !model.reminderCapabilities.supportsLiveActivities {
+                return "系统已关闭实时活动，灵动岛提醒暂不可用。"
+            }
+            return "在支持的 iPhone 灵动岛中显示当前课程和倒计时。"
+        case .liveActivity:
+            if !model.reminderCapabilities.supportsLiveActivities {
+                return "此设备或当前系统设置不支持实时活动，选项不可用。"
+            }
+            return "在锁屏上持续显示当前课程、倒计时和下一节课。"
+        case .systemNotification:
+            return "在上下课时发送系统通知。"
         }
     }
 
@@ -839,9 +907,9 @@ private struct ActivityStatusBadge: View {
 
     private var color: Color {
         switch text {
-        case "正在显示": .green
-        case "不可用": .red
-        case "已停止": .orange
+        case "正在显示", "已授权", "临时授权": .green
+        case "不可用", "系统已关闭", "调度失败": .red
+        case "已停止", "等待授权": .orange
         default: .secondary
         }
     }

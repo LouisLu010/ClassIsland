@@ -1,12 +1,28 @@
 import Foundation
 import SwiftUI
 
+enum ReminderSurface: String, Codable, CaseIterable, Hashable, Identifiable, Sendable {
+    case dynamicIsland
+    case liveActivity
+    case systemNotification
+
+    var id: Self { self }
+
+    var title: String {
+        switch self {
+        case .dynamicIsland: "灵动岛"
+        case .liveActivity: "实时活动"
+        case .systemNotification: "系统通知"
+        }
+    }
+}
+
 struct MobileSettings: Codable, Equatable, Sendable {
     static let timeOffsetRange = -300.0...300.0
     static let defaultWeatherCityID = "weathercn:101010100"
     static let defaultWeatherCityName = "北京市 (中国)"
 
-    var liveActivitiesEnabled = true
+    var reminderSurfaces: Set<ReminderSurface> = [.dynamicIsland, .liveActivity]
     var showTeacher = true
     var showCurrentLessonOnlyOnClass = false
     var useInitialInCompactIsland = true
@@ -29,6 +45,7 @@ struct MobileSettings: Codable, Equatable, Sendable {
     var timeOffsetSeconds = 0.0
 
     private enum CodingKeys: String, CodingKey {
+        case reminderSurfaces
         case liveActivitiesEnabled
         case showTeacher
         case showCurrentLessonOnlyOnClass
@@ -52,8 +69,13 @@ struct MobileSettings: Codable, Equatable, Sendable {
     init(from decoder: Decoder) throws {
         let defaults = MobileSettings()
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        liveActivitiesEnabled = (try? container.decode(Bool.self, forKey: .liveActivitiesEnabled))
-            ?? defaults.liveActivitiesEnabled
+        if let decodedSurfaces = try? container.decode(Set<ReminderSurface>.self, forKey: .reminderSurfaces) {
+            reminderSurfaces = decodedSurfaces
+        } else {
+            let legacyEnabled = (try? container.decode(Bool.self, forKey: .liveActivitiesEnabled))
+                ?? defaults.liveActivitiesEnabled
+            reminderSurfaces = legacyEnabled ? defaults.reminderSurfaces : []
+        }
         showTeacher = (try? container.decode(Bool.self, forKey: .showTeacher)) ?? defaults.showTeacher
         showCurrentLessonOnlyOnClass = (try? container.decode(Bool.self, forKey: .showCurrentLessonOnlyOnClass))
             ?? defaults.showCurrentLessonOnlyOnClass
@@ -100,6 +122,10 @@ struct MobileSettings: Codable, Equatable, Sendable {
 
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(
+            ReminderSurface.allCases.filter { reminderSurfaces.contains($0) },
+            forKey: .reminderSurfaces
+        )
         try container.encode(liveActivitiesEnabled, forKey: .liveActivitiesEnabled)
         try container.encode(showTeacher, forKey: .showTeacher)
         try container.encode(showCurrentLessonOnlyOnClass, forKey: .showCurrentLessonOnlyOnClass)
@@ -124,6 +150,24 @@ struct MobileSettings: Codable, Equatable, Sendable {
             return accent.color
         }
         return color
+    }
+
+    var liveActivitiesEnabled: Bool {
+        get {
+            reminderSurfaces.contains(.dynamicIsland)
+                || reminderSurfaces.contains(.liveActivity)
+        }
+        set {
+            if newValue {
+                reminderSurfaces.formUnion([.dynamicIsland, .liveActivity])
+            } else {
+                reminderSurfaces.subtract([.dynamicIsland, .liveActivity])
+            }
+        }
+    }
+
+    var systemNotificationsEnabled: Bool {
+        reminderSurfaces.contains(.systemNotification)
     }
 
     var activityAccentRGBA: UInt32 {

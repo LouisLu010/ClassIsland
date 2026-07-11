@@ -4,10 +4,13 @@ enum AppPage: String, CaseIterable, Hashable, Identifiable {
     case schedule
     case profile
     case general
+    case clock
+    case weather
     case storage
     case appearance
     case components
     case notification
+    case plugins
     case about
 
     var id: Self { self }
@@ -17,10 +20,13 @@ enum AppPage: String, CaseIterable, Hashable, Identifiable {
         case .schedule: "课表"
         case .profile: "档案编辑"
         case .general: "基本"
+        case .clock: "时钟"
+        case .weather: "天气"
         case .storage: "存储"
         case .appearance: "外观"
         case .components: "灵动岛组件"
         case .notification: "提醒"
+        case .plugins: "插件"
         case .about: "关于 ClassIsland"
         }
     }
@@ -30,10 +36,13 @@ enum AppPage: String, CaseIterable, Hashable, Identifiable {
         case .schedule: "calendar.day.timeline.leading"
         case .profile: "doc.text"
         case .general: "gearshape"
+        case .clock: "clock"
+        case .weather: "cloud.sun"
         case .storage: "internaldrive"
         case .appearance: "paintbrush"
         case .components: "square.grid.2x2"
         case .notification: "bell"
+        case .plugins: "puzzlepiece.extension"
         case .about: "info.circle"
         }
     }
@@ -43,16 +52,20 @@ enum AppPage: String, CaseIterable, Hashable, Identifiable {
         case .schedule: "calendar.day.timeline.leading"
         case .profile: "doc.text.fill"
         case .general: "gearshape.fill"
+        case .clock: "clock.fill"
+        case .weather: "cloud.sun.fill"
         case .storage: "internaldrive.fill"
         case .appearance: "paintbrush.fill"
         case .components: "square.grid.2x2.fill"
         case .notification: "bell.fill"
+        case .plugins: "puzzlepiece.extension.fill"
         case .about: "info.circle.fill"
         }
     }
 }
 
 struct RootView: View {
+    @EnvironmentObject private var pluginManager: MobilePluginManager
     @State private var selectedPage: AppPage? = .schedule
     @State private var columnVisibility = NavigationSplitViewVisibility.automatic
 
@@ -69,6 +82,18 @@ struct RootView: View {
             }
         }
         .navigationSplitViewStyle(.balanced)
+        .onChange(of: pluginManager.pendingInstall?.id) { _, pendingID in
+            guard pendingID != nil else { return }
+            selectedPage = .plugins
+        }
+        .onChange(of: pluginManager.isImporting) { _, isImporting in
+            guard isImporting else { return }
+            selectedPage = .plugins
+        }
+        .sheet(item: $pluginManager.pendingInstall) { pending in
+            PluginInstallReviewView(pending: pending)
+                .environmentObject(pluginManager)
+        }
     }
 
     @ViewBuilder
@@ -80,7 +105,9 @@ struct RootView: View {
             ProfileEditorView()
         case .components:
             LiveActivityComponentsEditorView()
-        case .general, .storage, .appearance, .notification, .about:
+        case .plugins:
+            PluginsSettingsView()
+        case .general, .clock, .weather, .storage, .appearance, .notification, .about:
             SettingsView(page: page)
         }
     }
@@ -104,6 +131,8 @@ private struct SettingsSidebar: View {
 
             Section("通用") {
                 pageLink(.general)
+                pageLink(.clock)
+                pageLink(.weather)
                 pageLink(.storage)
             }
 
@@ -114,6 +143,10 @@ private struct SettingsSidebar: View {
 
             Section {
                 pageLink(.notification)
+            }
+
+            Section("扩展") {
+                pageLink(.plugins)
             }
 
             Section {

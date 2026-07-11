@@ -11,9 +11,19 @@ struct ScheduleView: View {
         model.snapshot(for: selectedDate)
     }
 
+    private var courseToday: Date {
+        Calendar.current.startOfDay(
+            for: Date().addingTimeInterval(model.settings.timeOffsetSeconds)
+        )
+    }
+
+    private func isCourseToday(_ date: Date) -> Bool {
+        Calendar.current.isDate(date, inSameDayAs: courseToday)
+    }
+
     private func displayedSessions(_ snapshot: ScheduleSnapshot) -> [ScheduleSession] {
         if model.settings.showCurrentLessonOnlyOnClass,
-           Calendar.current.isDateInToday(selectedDate),
+           isCourseToday(selectedDate),
            let current = snapshot.current {
             return [current]
         }
@@ -40,7 +50,7 @@ struct ScheduleView: View {
 
                 Button("今天", systemImage: "scope") {
                     withAnimation(.snappy) {
-                        selectedDate = Calendar.current.startOfDay(for: Date())
+                        selectedDate = courseToday
                         followsToday = true
                     }
                 }
@@ -98,7 +108,9 @@ struct ScheduleView: View {
                 DateHeader(selectedDate: selectedDate, snapshot: snapshot)
 
                 if let snapshot {
-                    ScheduleStatusCard(snapshot: snapshot, isToday: Calendar.current.isDateInToday(selectedDate))
+                    ScheduleStatusCard(snapshot: snapshot, isToday: isCourseToday(selectedDate))
+
+                    MobilePluginComponentsView(schedule: snapshot)
 
                     VStack(alignment: .leading, spacing: 0) {
                         HStack {
@@ -125,7 +137,7 @@ struct ScheduleView: View {
                                 DailySessionRow(
                                     session: session,
                                     isCurrent: snapshot.current?.id == session.id
-                                        && Calendar.current.isDateInToday(selectedDate)
+                                        && isCourseToday(selectedDate)
                                 )
                                 if session.id != displayedSessions(snapshot).last?.id {
                                     Divider()
@@ -156,7 +168,7 @@ struct ScheduleView: View {
         guard let date = Calendar.current.date(byAdding: .day, value: days, to: selectedDate) else { return }
         withAnimation(.snappy) {
             selectedDate = date
-            followsToday = Calendar.current.isDateInToday(date)
+            followsToday = isCourseToday(date)
         }
     }
 }
@@ -246,12 +258,24 @@ private struct ScheduleStatusCard: View {
                     .foregroundStyle(.secondary)
 
                     if isToday, snapshot.phase == .inClass, let current = snapshot.current {
-                        ProgressView(value: progress(from: current.start, to: current.end, now: context.date))
+                        ProgressView(
+                            value: progress(
+                                from: current.start,
+                                to: current.end,
+                                now: snapshot.courseDate(forSystemDate: context.date)
+                            )
+                        )
                             .tint(model.settings.accentColor)
                     } else if isToday,
                               snapshot.phase == .breakTime,
                               let currentBreak = snapshot.currentBreak {
-                        ProgressView(value: progress(from: currentBreak.start, to: currentBreak.end, now: context.date))
+                        ProgressView(
+                            value: progress(
+                                from: currentBreak.start,
+                                to: currentBreak.end,
+                                now: snapshot.courseDate(forSystemDate: context.date)
+                            )
+                        )
                             .tint(model.settings.accentColor)
                     }
 

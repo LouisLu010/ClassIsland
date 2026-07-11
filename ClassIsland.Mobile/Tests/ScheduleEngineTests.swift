@@ -60,7 +60,85 @@ final class ScheduleEngineTests: XCTestCase {
         XCTAssertEqual(snapshot.nextBoundary, try date("2026-07-06T08:55:00Z"))
     }
 
-    func testBackgroundRefreshSchedulesImmediatelyAfterTheNextBoundary() throws {
+    func testScheduleTransitionsAtExactBoundaries() throws {
+        let profile = try decodeProfile(firstWeekDivision: 0, secondWeekDivision: nil)
+        let engine = ScheduleEngine()
+
+        let classEnd = engine.snapshot(
+            profile: profile,
+            settings: MobileSettings(),
+            at: try date("2026-07-06T08:45:00Z"),
+            calendar: calendar
+        )
+        XCTAssertEqual(classEnd.phase, .breakTime)
+        XCTAssertNil(classEnd.current)
+        XCTAssertEqual(classEnd.currentBreak?.name, "课间休息")
+
+        let nextClassStart = engine.snapshot(
+            profile: profile,
+            settings: MobileSettings(),
+            at: try date("2026-07-06T08:55:00Z"),
+            calendar: calendar
+        )
+        XCTAssertEqual(nextClassStart.phase, .inClass)
+        XCTAssertEqual(nextClassStart.current?.subject, "英语")
+        XCTAssertNil(nextClassStart.currentBreak)
+
+        let schoolEnd = engine.snapshot(
+            profile: profile,
+            settings: MobileSettings(),
+            at: try date("2026-07-06T09:40:00Z"),
+            calendar: calendar
+        )
+        XCTAssertEqual(schoolEnd.phase, .afterSchool)
+        XCTAssertNil(schoolEnd.current)
+    }
+
+    func testTimeOffsetAdvancesStateAndSystemBoundary() throws {
+        let profile = try decodeProfile(firstWeekDivision: 0, secondWeekDivision: nil)
+        var settings = MobileSettings()
+        settings.timeOffsetSeconds = 3
+        let systemNow = try date("2026-07-06T07:59:58Z")
+
+        let snapshot = ScheduleEngine().snapshot(
+            profile: profile,
+            settings: settings,
+            at: systemNow,
+            calendar: calendar
+        )
+
+        XCTAssertEqual(snapshot.phase, .inClass)
+        XCTAssertEqual(snapshot.current?.start, try date("2026-07-06T08:00:00Z"))
+        XCTAssertEqual(snapshot.nextBoundary, try date("2026-07-06T08:44:57Z"))
+        XCTAssertEqual(
+            snapshot.courseDate(forSystemDate: systemNow),
+            try date("2026-07-06T08:00:01Z")
+        )
+    }
+
+    func testForegroundRefreshTargetsTheNextBoundary() throws {
+        let profile = try decodeProfile(firstWeekDivision: 0, secondWeekDivision: nil)
+        let now = try date("2026-07-06T08:20:00Z")
+        let boundary = try date("2026-07-06T08:45:00Z")
+        let snapshot = ScheduleEngine().snapshot(
+            profile: profile,
+            settings: MobileSettings(),
+            at: now,
+            calendar: calendar
+        )
+
+        let target = try XCTUnwrap(
+            ScheduleRefreshPolicy.foregroundRefreshDate(for: snapshot, now: now)
+        )
+
+        XCTAssertEqual(
+            target.timeIntervalSince(boundary),
+            ScheduleRefreshPolicy.foregroundTransitionLeeway,
+            accuracy: 0.001
+        )
+    }
+
+    func testBackgroundRefreshTargetsTheNextBoundary() throws {
         let profile = try decodeProfile(firstWeekDivision: 0, secondWeekDivision: nil)
         let now = try date("2026-07-06T08:20:00Z")
         let snapshot = ScheduleEngine().snapshot(
@@ -77,7 +155,7 @@ final class ScheduleEngineTests: XCTestCase {
             now: now
         )
 
-        XCTAssertEqual(target, try date("2026-07-06T08:45:02Z"))
+        XCTAssertEqual(target, try date("2026-07-06T08:45:00Z"))
     }
 
     func testBackgroundRefreshRequiresAnEnabledActiveActivity() throws {
@@ -127,7 +205,7 @@ final class ScheduleEngineTests: XCTestCase {
             now: delayedNow
         )
 
-        XCTAssertEqual(target, try date("2026-07-06T09:00:02Z"))
+        XCTAssertEqual(target, try date("2026-07-06T09:00:01Z"))
     }
 
     func testBackgroundRefreshStopsAfterScheduleEnds() throws {
@@ -279,7 +357,10 @@ final class ScheduleEngineTests: XCTestCase {
           "ColorSource": 3,
           "PrimaryColor": "#00AEEFFF",
           "SelectedPlatte": "#123456FF",
-          "ShowCurrentLessonOnlyOnClass": true
+          "ShowCurrentLessonOnlyOnClass": true,
+          "TimeOffsetSeconds": 2.5,
+          "CityId": "weathercn:101020100",
+          "CityName": "上海市 (中国)"
         }
         """
         let settings = try JSONDecoder().decode(ClassIslandWindowsSettings.self, from: Data(json.utf8))
@@ -292,6 +373,9 @@ final class ScheduleEngineTests: XCTestCase {
         XCTAssertEqual(settings.primaryColor, "#00AEEFFF")
         XCTAssertEqual(settings.selectedPalette, "#123456FF")
         XCTAssertEqual(settings.showCurrentLessonOnlyOnClass, true)
+        XCTAssertEqual(settings.timeOffsetSeconds, 2.5)
+        XCTAssertEqual(settings.cityID, "weathercn:101020100")
+        XCTAssertEqual(settings.cityName, "上海市 (中国)")
     }
 
     func testDecodesLegacyWindowsAccentColor() throws {
@@ -310,7 +394,8 @@ final class ScheduleEngineTests: XCTestCase {
         {
           "showTeacher": false,
           "rotationOffsets": [-1, -1, -4, 20],
-          "maxRotationCycle": 99
+          "maxRotationCycle": 99,
+          "timeOffsetSeconds": 999
         }
         """
         let settings = try JSONDecoder().decode(MobileSettings.self, from: Data(json.utf8))
@@ -322,6 +407,10 @@ final class ScheduleEngineTests: XCTestCase {
         XCTAssertEqual(settings.maxRotationCycle, 12)
         XCTAssertEqual(settings.rotationOffset(for: 2), 0)
         XCTAssertEqual(settings.rotationOffset(for: 3), 2)
+        XCTAssertEqual(settings.timeOffsetSeconds, MobileSettings.timeOffsetRange.upperBound)
+        XCTAssertTrue(settings.weatherEnabled)
+        XCTAssertEqual(settings.weatherCityID, MobileSettings.defaultWeatherCityID)
+        XCTAssertEqual(settings.weatherCityName, MobileSettings.defaultWeatherCityName)
 
         let roundTripped = try JSONDecoder().decode(
             MobileSettings.self,

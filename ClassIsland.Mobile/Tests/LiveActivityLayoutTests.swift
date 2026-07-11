@@ -12,12 +12,16 @@ final class LiveActivityLayoutTests: XCTestCase {
         XCTAssertEqual(decoded.liveActivityLayout, .default)
         XCTAssertEqual(decoded.liveActivityLayout.components(in: .compactLeading).count, 1)
         XCTAssertEqual(decoded.liveActivityLayout.components(in: .lockPrimary).count, 2)
+        XCTAssertTrue(
+            decoded.liveActivityLayout.components(in: .lockHeader).contains { $0.kind == .weather }
+        )
     }
 
     func testOlderSettingsReceiveDefaultLayout() throws {
         let decoded = try JSONDecoder().decode(MobileSettings.self, from: Data("{}".utf8))
 
         XCTAssertEqual(decoded.liveActivityLayout, .default)
+        XCTAssertEqual(decoded.timeOffsetSeconds, 0)
     }
 
     func testLegacyVerboseComponentEncodingMigrates() throws {
@@ -41,6 +45,9 @@ final class LiveActivityLayoutTests: XCTestCase {
         XCTAssertEqual(component.kind, .date)
         XCTAssertTrue(component.isEmphasized)
         XCTAssertFalse(component.showsIcon)
+        XCTAssertFalse(component.clockShowsSeconds)
+        XCTAssertFalse(component.clockUsesSystemTime)
+        XCTAssertEqual(component.weatherMetric, .condition)
     }
 
     func testCompactRegionReplacesExistingComponent() {
@@ -50,6 +57,41 @@ final class LiveActivityLayoutTests: XCTestCase {
         layout.add(replacement, to: .compactLeading)
 
         XCTAssertEqual(layout.components(in: .compactLeading), [replacement])
+    }
+
+    func testClockComponentOptionsRoundTrip() throws {
+        let component = LiveActivityComponentConfiguration(
+            kind: .clock,
+            isEmphasized: true,
+            showsIcon: false,
+            clockShowsSeconds: true,
+            clockUsesSystemTime: true
+        )
+
+        let decoded = try JSONDecoder().decode(
+            LiveActivityComponentConfiguration.self,
+            from: JSONEncoder().encode(component)
+        )
+
+        XCTAssertEqual(decoded, component)
+        XCTAssertTrue(decoded.clockShowsSeconds)
+        XCTAssertTrue(decoded.clockUsesSystemTime)
+    }
+
+    func testWeatherComponentMetricRoundTrips() throws {
+        let component = LiveActivityComponentConfiguration(
+            kind: .weather,
+            isEmphasized: true,
+            weatherMetric: .airQuality
+        )
+
+        let decoded = try JSONDecoder().decode(
+            LiveActivityComponentConfiguration.self,
+            from: JSONEncoder().encode(component)
+        )
+
+        XCTAssertEqual(decoded, component)
+        XCTAssertEqual(decoded.weatherMetric, .airQuality)
     }
 
     func testExpandedRegionSupportsReorderingAndCapacityLimit() {
@@ -92,8 +134,10 @@ final class LiveActivityLayoutTests: XCTestCase {
             nextTitle: "英语",
             nextStart: Date().addingTimeInterval(3_000),
             updatedAt: Date(),
+            timeOffsetSeconds: 2.5,
             accentRGBA: 0x05ABE8FF,
-            layout: .default
+            layout: .default,
+            weather: weatherPresentation
         )
 
         let data = try JSONEncoder().encode(state)
@@ -131,8 +175,15 @@ final class LiveActivityLayoutTests: XCTestCase {
             nextTitle: longText,
             nextStart: Date().addingTimeInterval(3_000),
             updatedAt: Date(),
+            timeOffsetSeconds: 2.5,
             accentRGBA: 0x05ABE8FF,
-            layout: layout
+            layout: layout,
+            weather: weatherPresentation,
+            plugin: PluginActivityPresentation(
+                title: String(repeating: "标题", count: 24),
+                value: String(repeating: "内容", count: 32),
+                systemImage: "puzzlepiece.extension"
+            )
         )
 
         let encoder = JSONEncoder()
@@ -165,5 +216,20 @@ final class LiveActivityLayoutTests: XCTestCase {
 
         XCTAssertEqual(state.accentRGBA, 0x05ABE8FF)
         XCTAssertEqual(state.layout, .default)
+        XCTAssertEqual(state.timeOffsetSeconds, 0)
+        XCTAssertNil(state.weather)
+        XCTAssertNil(state.plugin)
+    }
+
+    private var weatherPresentation: WeatherPresentation {
+        WeatherPresentation(
+            weatherCode: "0",
+            temperature: "27℃",
+            humidity: "65%",
+            windSpeed: "8 km/h",
+            airQualityIndex: "42",
+            pressure: "1012 hPa",
+            feelsLike: "29℃"
+        )
     }
 }

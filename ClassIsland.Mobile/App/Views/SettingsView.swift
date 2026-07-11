@@ -1,3 +1,4 @@
+import Foundation
 import SwiftUI
 import UniformTypeIdentifiers
 
@@ -42,6 +43,10 @@ struct SettingsView: View {
             ProfileEditorView()
         case .general:
             generalPage
+        case .clock:
+            clockPage
+        case .weather:
+            WeatherSettingsView()
         case .storage:
             storagePage
         case .appearance:
@@ -50,6 +55,8 @@ struct SettingsView: View {
             LiveActivityComponentsEditorView()
         case .notification:
             notificationPage
+        case .plugins:
+            PluginsSettingsView()
         case .about:
             aboutPage
         }
@@ -177,6 +184,67 @@ struct SettingsView: View {
                 .labelsHidden()
             }
         }
+    }
+
+    private var clockPage: some View {
+        SettingsPageLayout(title: page.title) {
+            SettingsSectionTitle("当前时间", systemImage: "clock")
+
+            SettingsPanel(
+                systemImage: "clock.fill",
+                title: "课程时钟",
+                description: "显示应用用于判断上下课状态的当前时间。"
+            ) {
+                ClockPreview(offsetSeconds: model.settings.timeOffsetSeconds)
+                    .padding(18)
+            }
+
+            SettingsSectionTitle("时间校准", systemImage: "clock.arrow.2.circlepath")
+
+            SettingsPanel(
+                systemImage: "plus.forwardslash.minus",
+                title: "时间偏移",
+                description: "正值会让课程状态提前切换，负值会让课程状态延后切换。"
+            ) {
+                SettingsInlineRow(
+                    title: "偏移秒数",
+                    description: "可在 -300 秒到 300 秒之间调整。"
+                ) {
+                    Stepper(
+                        value: $model.settings.timeOffsetSeconds,
+                        in: MobileSettings.timeOffsetRange,
+                        step: 0.5
+                    ) {
+                        Text(formattedTimeOffset)
+                            .monospacedDigit()
+                            .frame(minWidth: 74, alignment: .trailing)
+                    }
+                    .fixedSize()
+                }
+
+                Divider()
+                    .padding(.leading, 12)
+
+                HStack {
+                    Spacer()
+                    Button("重置偏移", systemImage: "arrow.counterclockwise") {
+                        model.settings.timeOffsetSeconds = 0
+                    }
+                    .disabled(abs(model.settings.timeOffsetSeconds) < 0.001)
+                }
+                .padding(12)
+            }
+
+            SettingsInfoBanner(
+                "导入 Windows 版 Settings.json 时，时间偏移也会自动同步。"
+            )
+        }
+    }
+
+    private var formattedTimeOffset: String {
+        let value = model.settings.timeOffsetSeconds
+        guard abs(value) >= 0.001 else { return "0.0 秒" }
+        return String(format: "%+.1f 秒", value)
     }
 
     private var accentPalette: some View {
@@ -379,7 +447,42 @@ struct SettingsView: View {
     }
 }
 
-private struct SettingsPageLayout<Content: View>: View {
+private struct ClockPreview: View {
+    let offsetSeconds: TimeInterval
+
+    var body: some View {
+        TimelineView(.periodic(from: .now, by: 1)) { context in
+            let date = context.date.addingTimeInterval(offsetSeconds)
+            VStack(alignment: .leading, spacing: 5) {
+                Text(
+                    date,
+                    format: .dateTime
+                        .hour(.twoDigitsNoAMPM)
+                        .minute(.twoDigits)
+                        .second(.twoDigits)
+                        .locale(Locale(identifier: "en_GB"))
+                )
+                .font(.system(size: 38, weight: .medium, design: .rounded))
+                .monospacedDigit()
+                .contentTransition(.numericText())
+
+                Text(
+                    date,
+                    format: .dateTime
+                        .year()
+                        .month(.wide)
+                        .day()
+                        .weekday(.wide)
+                )
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+}
+
+struct SettingsPageLayout<Content: View>: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     let title: String
@@ -410,7 +513,7 @@ private struct SettingsPageLayout<Content: View>: View {
     }
 }
 
-private struct SettingsSectionTitle: View {
+struct SettingsSectionTitle: View {
     let title: String
     let systemImage: String
 
@@ -428,7 +531,7 @@ private struct SettingsSectionTitle: View {
     }
 }
 
-private struct SettingsCard<Accessory: View>: View {
+struct SettingsCard<Accessory: View>: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     let systemImage: String
@@ -488,7 +591,7 @@ private struct SettingsCard<Accessory: View>: View {
     }
 }
 
-private struct SettingsPanel<Content: View>: View {
+struct SettingsPanel<Content: View>: View {
     let systemImage: String
     let title: String
     let description: String?
@@ -548,7 +651,7 @@ private struct SettingsIcon: View {
     }
 }
 
-private struct SettingsInlineRow<Accessory: View>: View {
+struct SettingsInlineRow<Accessory: View>: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     let title: String
@@ -597,7 +700,7 @@ private struct SettingsInlineRow<Accessory: View>: View {
     }
 }
 
-private struct SettingsValueRow: View {
+struct SettingsValueRow: View {
     let title: String
     let value: String
 
@@ -794,7 +897,7 @@ private struct ActivityControlButtons: View {
     }
 }
 
-private struct SettingsInfoBanner: View {
+struct SettingsInfoBanner: View {
     let text: String
 
     init(_ text: String) {
@@ -812,7 +915,7 @@ private struct SettingsInfoBanner: View {
     }
 }
 
-private struct SettingsStatusMessage: View {
+struct SettingsStatusMessage: View {
     let text: String
 
     init(_ text: String) {
@@ -833,7 +936,7 @@ private struct SettingsStatusMessage: View {
     }
 }
 
-private extension View {
+extension View {
     func settingsCardBackground() -> some View {
         background(Color(uiColor: .secondarySystemGroupedBackground))
             .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))

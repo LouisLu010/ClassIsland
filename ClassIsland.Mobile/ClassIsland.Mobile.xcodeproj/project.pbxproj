@@ -32,13 +32,32 @@
 		A00000000000000000000223 /* ClassIslandLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000116 /* ClassIslandLiveActivity.swift */; };
 		A00000000000000000000224 /* LiveActivityLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000129 /* LiveActivityLayout.swift */; };
 		A00000000000000000000225 /* LiveActivityComponentsEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000130 /* LiveActivityComponentsEditorView.swift */; };
+		A00000000000000000000226 /* WeatherService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000132 /* WeatherService.swift */; };
+		A00000000000000000000227 /* WeatherSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000133 /* WeatherSettingsView.swift */; };
+		A00000000000000000000228 /* WeatherPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000134 /* WeatherPresentation.swift */; };
+		A00000000000000000000229 /* WeatherPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000134 /* WeatherPresentation.swift */; };
 		A00000000000000000000230 /* ScheduleEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000117 /* ScheduleEngineTests.swift */; };
 		A00000000000000000000231 /* ProfileEditingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000128 /* ProfileEditingTests.swift */; };
 		A00000000000000000000232 /* LiveActivityLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000131 /* LiveActivityLayoutTests.swift */; };
+		A00000000000000000000233 /* WeatherServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000135 /* WeatherServiceTests.swift */; };
+		A00000000000000000000234 /* MobilePluginModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000136 /* MobilePluginModels.swift */; };
+		A00000000000000000000235 /* MobilePluginRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000137 /* MobilePluginRepository.swift */; };
+		A00000000000000000000236 /* MobilePluginPackageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000138 /* MobilePluginPackageService.swift */; };
+		A00000000000000000000237 /* MobilePluginRuntime.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000139 /* MobilePluginRuntime.swift */; };
+		A00000000000000000000238 /* MobilePluginManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000140 /* MobilePluginManager.swift */; };
+		A00000000000000000000239 /* PluginsSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000141 /* PluginsSettingsView.swift */; };
+		A00000000000000000000260 /* MobilePluginComponentsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000142 /* MobilePluginComponentsView.swift */; };
+		A00000000000000000000261 /* PluginActivityPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000143 /* PluginActivityPresentation.swift */; };
+		A00000000000000000000262 /* PluginActivityPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000143 /* PluginActivityPresentation.swift */; };
+		A00000000000000000000263 /* MobilePluginTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000144 /* MobilePluginTests.swift */; };
+		A00000000000000000000264 /* MobileRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000145 /* MobileRepositoryTests.swift */; };
 		A00000000000000000000240 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000120 /* Assets.xcassets */; };
 		A00000000000000000000241 /* SampleProfile.json in Resources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000121 /* SampleProfile.json */; };
 		A00000000000000000000250 /* ClassIslandLiveActivity.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = A00000000000000000000091 /* ClassIslandLiveActivity.appex */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		A00000000000000000000251 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A00000000000000000000093 /* XCTest.framework */; };
+		A00000000000000000000270 /* ZIPFoundation in Frameworks */ = {isa = PBXBuildFile; productRef = A00000000000000000000801 /* ZIPFoundation */; };
+		A00000000000000000000271 /* Yams in Frameworks */ = {isa = PBXBuildFile; productRef = A00000000000000000000802 /* Yams */; };
+		A00000000000000000000272 /* ZIPFoundation in Frameworks */ = {isa = PBXBuildFile; productRef = A00000000000000000000803 /* ZIPFoundation */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -108,15 +127,29 @@
 		A00000000000000000000129 /* LiveActivityLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityLayout.swift; sourceTree = "<group>"; };
 		A00000000000000000000130 /* LiveActivityComponentsEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityComponentsEditorView.swift; sourceTree = "<group>"; };
 		A00000000000000000000131 /* LiveActivityLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityLayoutTests.swift; sourceTree = "<group>"; };
+		A00000000000000000000132 /* WeatherService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherService.swift; sourceTree = "<group>"; };
+		A00000000000000000000133 /* WeatherSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherSettingsView.swift; sourceTree = "<group>"; };
+		A00000000000000000000134 /* WeatherPresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherPresentation.swift; sourceTree = "<group>"; };
+		A00000000000000000000135 /* WeatherServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherServiceTests.swift; sourceTree = "<group>"; };
+		A00000000000000000000136 /* MobilePluginModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobilePluginModels.swift; sourceTree = "<group>"; };
+		A00000000000000000000137 /* MobilePluginRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobilePluginRepository.swift; sourceTree = "<group>"; };
+		A00000000000000000000138 /* MobilePluginPackageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobilePluginPackageService.swift; sourceTree = "<group>"; };
+		A00000000000000000000139 /* MobilePluginRuntime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobilePluginRuntime.swift; sourceTree = "<group>"; };
+		A00000000000000000000140 /* MobilePluginManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobilePluginManager.swift; sourceTree = "<group>"; };
+		A00000000000000000000141 /* PluginsSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginsSettingsView.swift; sourceTree = "<group>"; };
+		A00000000000000000000142 /* MobilePluginComponentsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobilePluginComponentsView.swift; sourceTree = "<group>"; };
+		A00000000000000000000143 /* PluginActivityPresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginActivityPresentation.swift; sourceTree = "<group>"; };
+		A00000000000000000000144 /* MobilePluginTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobilePluginTests.swift; sourceTree = "<group>"; };
+		A00000000000000000000145 /* MobileRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileRepositoryTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		A00000000000000000000302 /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		A00000000000000000000302 /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000270 /* ZIPFoundation in Frameworks */, A00000000000000000000271 /* Yams in Frameworks */, ); runOnlyForDeploymentPostprocessing = 0; };
 		A00000000000000000000312 /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 		A00000000000000000000322 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
-			files = (A00000000000000000000251 /* XCTest.framework in Frameworks */, );
+			files = (A00000000000000000000251 /* XCTest.framework in Frameworks */, A00000000000000000000272 /* ZIPFoundation in Frameworks */, );
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
@@ -166,14 +199,14 @@
 			path = App;
 			sourceTree = "<group>";
 		};
-		A00000000000000000000011 /* Models */ = {isa = PBXGroup; children = (A00000000000000000000103, A00000000000000000000104, ); path = Models; sourceTree = "<group>"; };
-		A00000000000000000000012 /* Services */ = {isa = PBXGroup; children = (A00000000000000000000105, A00000000000000000000106, A00000000000000000000107, A00000000000000000000108, A00000000000000000000118, A00000000000000000000119, ); path = Services; sourceTree = "<group>"; };
-		A00000000000000000000013 /* Views */ = {isa = PBXGroup; children = (A00000000000000000000109, A00000000000000000000110, A00000000000000000000111, A00000000000000000000126, A00000000000000000000127, A00000000000000000000130, ); path = Views; sourceTree = "<group>"; };
-		A00000000000000000000014 /* Shared */ = {isa = PBXGroup; children = (A00000000000000000000112, A00000000000000000000113, A00000000000000000000114, A00000000000000000000129, ); path = Shared; sourceTree = "<group>"; };
+		A00000000000000000000011 /* Models */ = {isa = PBXGroup; children = (A00000000000000000000103, A00000000000000000000104, A00000000000000000000136, ); path = Models; sourceTree = "<group>"; };
+		A00000000000000000000012 /* Services */ = {isa = PBXGroup; children = (A00000000000000000000105, A00000000000000000000106, A00000000000000000000107, A00000000000000000000108, A00000000000000000000118, A00000000000000000000119, A00000000000000000000132, A00000000000000000000137, A00000000000000000000138, A00000000000000000000139, A00000000000000000000140, ); path = Services; sourceTree = "<group>"; };
+		A00000000000000000000013 /* Views */ = {isa = PBXGroup; children = (A00000000000000000000109, A00000000000000000000110, A00000000000000000000111, A00000000000000000000126, A00000000000000000000127, A00000000000000000000130, A00000000000000000000133, A00000000000000000000141, A00000000000000000000142, ); path = Views; sourceTree = "<group>"; };
+		A00000000000000000000014 /* Shared */ = {isa = PBXGroup; children = (A00000000000000000000112, A00000000000000000000113, A00000000000000000000114, A00000000000000000000129, A00000000000000000000134, A00000000000000000000143, ); path = Shared; sourceTree = "<group>"; };
 		A00000000000000000000015 /* LiveActivity */ = {isa = PBXGroup; children = (A00000000000000000000115, A00000000000000000000116, ); path = LiveActivity; sourceTree = "<group>"; };
 		A00000000000000000000016 /* Resources */ = {isa = PBXGroup; children = (A00000000000000000000120, A00000000000000000000121, ); path = Resources; sourceTree = "<group>"; };
 		A00000000000000000000017 /* Supporting */ = {isa = PBXGroup; children = (A00000000000000000000122, A00000000000000000000123, ); path = Supporting; sourceTree = "<group>"; };
-		A00000000000000000000018 /* Tests */ = {isa = PBXGroup; children = (A00000000000000000000117, A00000000000000000000128, A00000000000000000000131, ); path = Tests; sourceTree = "<group>"; };
+		A00000000000000000000018 /* Tests */ = {isa = PBXGroup; children = (A00000000000000000000117, A00000000000000000000128, A00000000000000000000131, A00000000000000000000135, A00000000000000000000144, A00000000000000000000145, ); path = Tests; sourceTree = "<group>"; };
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -185,6 +218,10 @@
 			dependencies = (A00000000000000000000701, );
 			name = ClassIslandMobile;
 			productName = ClassIslandMobile;
+			packageProductDependencies = (
+				A00000000000000000000801 /* ZIPFoundation */,
+				A00000000000000000000802 /* Yams */,
+			);
 			productReference = A00000000000000000000090;
 			productType = "com.apple.product-type.application";
 		};
@@ -207,6 +244,9 @@
 			dependencies = (A00000000000000000000703, );
 			name = ClassIslandMobileTests;
 			productName = ClassIslandMobileTests;
+			packageProductDependencies = (
+				A00000000000000000000803 /* ZIPFoundation */,
+			);
 			productReference = A00000000000000000000092;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
@@ -232,6 +272,10 @@
 			knownRegions = (Base, en, zh_CN, );
 			mainGroup = A00000000000000000000002;
 			productRefGroup = A00000000000000000000003;
+			packageReferences = (
+				A00000000000000000000901 /* XCRemoteSwiftPackageReference "ZIPFoundation" */,
+				A00000000000000000000902 /* XCRemoteSwiftPackageReference "Yams" */,
+			);
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (A00000000000000000000401, A00000000000000000000402, A00000000000000000000403, );
@@ -255,18 +299,59 @@
 				A00000000000000000000210, A00000000000000000000211, A00000000000000000000212,
 				A00000000000000000000213, A00000000000000000000214, A00000000000000000000215,
 				A00000000000000000000216, A00000000000000000000217, A00000000000000000000218,
-				A00000000000000000000219, A00000000000000000000225,
+				A00000000000000000000219, A00000000000000000000225, A00000000000000000000226,
+				A00000000000000000000227, A00000000000000000000228, A00000000000000000000234,
+				A00000000000000000000235, A00000000000000000000236, A00000000000000000000237,
+				A00000000000000000000238, A00000000000000000000239, A00000000000000000000260,
+				A00000000000000000000261,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		A00000000000000000000311 /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000220, A00000000000000000000221, A00000000000000000000222, A00000000000000000000223, A00000000000000000000224, ); runOnlyForDeploymentPostprocessing = 0; };
-		A00000000000000000000321 /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000230, A00000000000000000000231, A00000000000000000000232, ); runOnlyForDeploymentPostprocessing = 0; };
+		A00000000000000000000311 /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000220, A00000000000000000000221, A00000000000000000000222, A00000000000000000000223, A00000000000000000000224, A00000000000000000000229, A00000000000000000000262, ); runOnlyForDeploymentPostprocessing = 0; };
+		A00000000000000000000321 /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000230, A00000000000000000000231, A00000000000000000000232, A00000000000000000000233, A00000000000000000000263, A00000000000000000000264, ); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
 		A00000000000000000000701 /* PBXTargetDependency */ = {isa = PBXTargetDependency; target = A00000000000000000000402; targetProxy = A00000000000000000000700; };
 		A00000000000000000000703 /* PBXTargetDependency */ = {isa = PBXTargetDependency; target = A00000000000000000000401; targetProxy = A00000000000000000000702; };
 /* End PBXTargetDependency section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		A00000000000000000000901 /* XCRemoteSwiftPackageReference "ZIPFoundation" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/weichsel/ZIPFoundation.git";
+			requirement = {
+				kind = exactVersion;
+				version = 0.9.19;
+			};
+		};
+		A00000000000000000000902 /* XCRemoteSwiftPackageReference "Yams" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/jpsim/Yams.git";
+			requirement = {
+				kind = exactVersion;
+				version = 5.1.3;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A00000000000000000000801 /* ZIPFoundation */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A00000000000000000000901 /* XCRemoteSwiftPackageReference "ZIPFoundation" */;
+			productName = ZIPFoundation;
+		};
+		A00000000000000000000802 /* Yams */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A00000000000000000000902 /* XCRemoteSwiftPackageReference "Yams" */;
+			productName = Yams;
+		};
+		A00000000000000000000803 /* ZIPFoundation */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A00000000000000000000901 /* XCRemoteSwiftPackageReference "ZIPFoundation" */;
+			productName = ZIPFoundation;
+		};
+/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCBuildConfiguration section */
 		A00000000000000000000501 /* Debug */ = {isa = XCBuildConfiguration; buildSettings = {ALWAYS_SEARCH_USER_PATHS = NO; CLANG_ENABLE_MODULES = YES; CLANG_ENABLE_OBJC_ARC = YES; DEBUG_INFORMATION_FORMAT = dwarf; ENABLE_TESTABILITY = YES; GCC_C_LANGUAGE_STANDARD = gnu17; IPHONEOS_DEPLOYMENT_TARGET = 17.0; ONLY_ACTIVE_ARCH = YES; SDKROOT = iphoneos; SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; SWIFT_VERSION = 5.10; }; name = Debug; };

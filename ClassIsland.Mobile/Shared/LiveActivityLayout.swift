@@ -47,8 +47,10 @@ enum LiveActivityComponentKind: String, Codable, CaseIterable, Hashable, Identif
     case progress
     case nextLesson
     case profileName
+    case weather
     case clock
     case date
+    case plugin
     case customText
 
     var id: Self { self }
@@ -61,8 +63,10 @@ enum LiveActivityComponentKind: String, Codable, CaseIterable, Hashable, Identif
         case .progress: "课程进度"
         case .nextLesson: "下一节课"
         case .profileName: "档案名称"
-        case .clock: "更新时间"
+        case .weather: "天气"
+        case .clock: "时钟"
         case .date: "日期"
+        case .plugin: "插件信息"
         case .customText: "自定义文本"
         }
     }
@@ -75,8 +79,10 @@ enum LiveActivityComponentKind: String, Codable, CaseIterable, Hashable, Identif
         case .progress: "显示当前阶段的时间进度。"
         case .nextLesson: "显示下一节课程及开始时间。"
         case .profileName: "显示当前档案名称。"
-        case .clock: "显示实时活动最近更新时间。"
-        case .date: "显示当前日期。"
+        case .weather: "显示天气、湿度、风速、AQI、气压或体感温度。"
+        case .clock: "显示当前时间，可选择显示秒数。"
+        case .date: "显示随日期变化自动更新的当前日期。"
+        case .plugin: "显示已授权插件提供的一组受限文本。"
         case .customText: "显示一段自定义文本。"
         }
     }
@@ -89,8 +95,10 @@ enum LiveActivityComponentKind: String, Codable, CaseIterable, Hashable, Identif
         case .progress: "chart.bar.fill"
         case .nextLesson: "arrow.right.circle"
         case .profileName: "person.crop.rectangle"
+        case .weather: "cloud.sun"
         case .clock: "clock"
         case .date: "calendar"
+        case .plugin: "puzzlepiece.extension"
         case .customText: "textformat"
         }
     }
@@ -104,12 +112,18 @@ struct LiveActivityComponentConfiguration: Codable, Equatable, Hashable, Identif
     var customText: String
     var isEmphasized: Bool
     var showsIcon: Bool
+    var weatherMetric: WeatherMetric
+    var clockShowsSeconds: Bool
+    var clockUsesSystemTime: Bool
 
     private enum CodingKeys: String, CodingKey {
         case kind = "k"
         case customText = "t"
         case isEmphasized = "e"
         case showsIcon = "s"
+        case weatherMetric = "w"
+        case clockShowsSeconds = "c"
+        case clockUsesSystemTime = "r"
     }
 
     private enum LegacyCodingKeys: String, CodingKey {
@@ -117,6 +131,9 @@ struct LiveActivityComponentConfiguration: Codable, Equatable, Hashable, Identif
         case customText
         case isEmphasized
         case showsIcon
+        case weatherMetric
+        case clockShowsSeconds
+        case clockUsesSystemTime
     }
 
     init(
@@ -124,13 +141,19 @@ struct LiveActivityComponentConfiguration: Codable, Equatable, Hashable, Identif
         kind: LiveActivityComponentKind,
         customText: String = "",
         isEmphasized: Bool = false,
-        showsIcon: Bool = true
+        showsIcon: Bool = true,
+        weatherMetric: WeatherMetric = .condition,
+        clockShowsSeconds: Bool = false,
+        clockUsesSystemTime: Bool = false
     ) {
         self.id = id
         self.kind = kind
         self.customText = String(customText.prefix(Self.maximumCustomTextLength))
         self.isEmphasized = isEmphasized
         self.showsIcon = showsIcon
+        self.weatherMetric = weatherMetric
+        self.clockShowsSeconds = clockShowsSeconds
+        self.clockUsesSystemTime = clockUsesSystemTime
     }
 
     init(from decoder: Decoder) throws {
@@ -154,6 +177,33 @@ struct LiveActivityComponentConfiguration: Codable, Equatable, Hashable, Identif
         let decodedShowsIcon = try container.decodeIfPresent(Bool.self, forKey: .showsIcon)
         let legacyShowsIcon = try legacy.decodeIfPresent(Bool.self, forKey: .showsIcon)
         showsIcon = decodedShowsIcon ?? legacyShowsIcon ?? true
+        let decodedWeatherMetric = try container.decodeIfPresent(
+            WeatherMetric.self,
+            forKey: .weatherMetric
+        )
+        let legacyWeatherMetric = try legacy.decodeIfPresent(
+            WeatherMetric.self,
+            forKey: .weatherMetric
+        )
+        weatherMetric = decodedWeatherMetric ?? legacyWeatherMetric ?? .condition
+        let decodedClockShowsSeconds = try container.decodeIfPresent(
+            Bool.self,
+            forKey: .clockShowsSeconds
+        )
+        let legacyClockShowsSeconds = try legacy.decodeIfPresent(
+            Bool.self,
+            forKey: .clockShowsSeconds
+        )
+        clockShowsSeconds = decodedClockShowsSeconds ?? legacyClockShowsSeconds ?? false
+        let decodedClockUsesSystemTime = try container.decodeIfPresent(
+            Bool.self,
+            forKey: .clockUsesSystemTime
+        )
+        let legacyClockUsesSystemTime = try legacy.decodeIfPresent(
+            Bool.self,
+            forKey: .clockUsesSystemTime
+        )
+        clockUsesSystemTime = decodedClockUsesSystemTime ?? legacyClockUsesSystemTime ?? false
     }
 
     func encode(to encoder: Encoder) throws {
@@ -168,6 +218,15 @@ struct LiveActivityComponentConfiguration: Codable, Equatable, Hashable, Identif
         if !showsIcon {
             try container.encode(false, forKey: .showsIcon)
         }
+        if kind == .weather && weatherMetric != .condition {
+            try container.encode(weatherMetric, forKey: .weatherMetric)
+        }
+        if kind == .clock && clockShowsSeconds {
+            try container.encode(true, forKey: .clockShowsSeconds)
+        }
+        if kind == .clock && clockUsesSystemTime {
+            try container.encode(true, forKey: .clockUsesSystemTime)
+        }
     }
 
     static func == (
@@ -178,6 +237,9 @@ struct LiveActivityComponentConfiguration: Codable, Equatable, Hashable, Identif
             && lhs.customText == rhs.customText
             && lhs.isEmphasized == rhs.isEmphasized
             && lhs.showsIcon == rhs.showsIcon
+            && lhs.weatherMetric == rhs.weatherMetric
+            && lhs.clockShowsSeconds == rhs.clockShowsSeconds
+            && lhs.clockUsesSystemTime == rhs.clockUsesSystemTime
     }
 
     func hash(into hasher: inout Hasher) {
@@ -185,6 +247,9 @@ struct LiveActivityComponentConfiguration: Codable, Equatable, Hashable, Identif
         hasher.combine(customText)
         hasher.combine(isEmphasized)
         hasher.combine(showsIcon)
+        hasher.combine(weatherMetric)
+        hasher.combine(clockShowsSeconds)
+        hasher.combine(clockUsesSystemTime)
     }
 
     fileprivate func normalized() -> LiveActivityComponentConfiguration {
@@ -196,6 +261,13 @@ struct LiveActivityComponentConfiguration: Codable, Equatable, Hashable, Identif
                 : String(customText.prefix(Self.maximumCustomTextLength))
         } else {
             result.customText = ""
+        }
+        if kind != .weather {
+            result.weatherMetric = .condition
+        }
+        if kind != .clock {
+            result.clockShowsSeconds = false
+            result.clockUsesSystemTime = false
         }
         return result
     }
@@ -317,6 +389,7 @@ struct LiveActivityLayout: Codable, Equatable, Hashable, Sendable {
     static let `default` = LiveActivityLayout(storage: [
         .lockHeader: [
             LiveActivityComponentConfiguration(kind: .status, isEmphasized: true),
+            LiveActivityComponentConfiguration(kind: .weather),
             LiveActivityComponentConfiguration(kind: .profileName, showsIcon: false)
         ],
         .lockPrimary: [
@@ -330,7 +403,8 @@ struct LiveActivityLayout: Codable, Equatable, Hashable, Sendable {
             LiveActivityComponentConfiguration(kind: .nextLesson)
         ],
         .expandedLeading: [
-            LiveActivityComponentConfiguration(kind: .status, isEmphasized: true)
+            LiveActivityComponentConfiguration(kind: .status, isEmphasized: true),
+            LiveActivityComponentConfiguration(kind: .weather)
         ],
         .expandedCenter: [
             LiveActivityComponentConfiguration(kind: .currentLesson, isEmphasized: true, showsIcon: false)

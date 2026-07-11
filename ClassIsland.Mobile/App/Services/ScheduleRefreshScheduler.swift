@@ -2,7 +2,21 @@ import BackgroundTasks
 import Foundation
 
 enum ScheduleRefreshPolicy {
-    static let transitionDelay: TimeInterval = 2
+    static let foregroundTransitionLeeway: TimeInterval = 0.1
+    static let minimumForegroundDelay: TimeInterval = 0.05
+    static let backgroundRetryDelay: TimeInterval = 1
+    static let liveActivityStaleLeeway: TimeInterval = 1
+
+    static func foregroundRefreshDate(
+        for snapshot: ScheduleSnapshot,
+        now: Date = Date()
+    ) -> Date? {
+        guard let boundary = snapshot.nextBoundary else { return nil }
+        return max(
+            boundary.addingTimeInterval(foregroundTransitionLeeway),
+            now.addingTimeInterval(minimumForegroundDelay)
+        )
+    }
 
     static func earliestBeginDate(
         for snapshot: ScheduleSnapshot,
@@ -15,10 +29,7 @@ enum ScheduleRefreshPolicy {
               let boundary = snapshot.nextBoundary else {
             return nil
         }
-        return max(
-            boundary.addingTimeInterval(transitionDelay),
-            now.addingTimeInterval(transitionDelay)
-        )
+        return boundary > now ? boundary : now.addingTimeInterval(backgroundRetryDelay)
     }
 }
 

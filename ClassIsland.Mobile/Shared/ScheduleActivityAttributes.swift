@@ -12,8 +12,11 @@ struct ScheduleActivityAttributes: ActivityAttributes {
         let nextTitle: String
         let nextStart: Date?
         let updatedAt: Date
+        let timeOffsetSeconds: TimeInterval
         let accentRGBA: UInt32
         let layout: LiveActivityLayout
+        let weather: WeatherPresentation?
+        let plugin: PluginActivityPresentation?
 
         private enum CodingKeys: String, CodingKey {
             case phase
@@ -25,8 +28,11 @@ struct ScheduleActivityAttributes: ActivityAttributes {
             case nextTitle
             case nextStart
             case updatedAt
+            case timeOffsetSeconds
             case accentRGBA
             case layout
+            case weather
+            case plugin
         }
 
         init(
@@ -39,8 +45,11 @@ struct ScheduleActivityAttributes: ActivityAttributes {
             nextTitle: String,
             nextStart: Date?,
             updatedAt: Date,
+            timeOffsetSeconds: TimeInterval,
             accentRGBA: UInt32,
-            layout: LiveActivityLayout
+            layout: LiveActivityLayout,
+            weather: WeatherPresentation? = nil,
+            plugin: PluginActivityPresentation? = nil
         ) {
             self.phase = phase
             self.headline = headline
@@ -51,8 +60,11 @@ struct ScheduleActivityAttributes: ActivityAttributes {
             self.nextTitle = nextTitle
             self.nextStart = nextStart
             self.updatedAt = updatedAt
+            self.timeOffsetSeconds = timeOffsetSeconds
             self.accentRGBA = accentRGBA
             self.layout = layout
+            self.weather = weather
+            self.plugin = plugin
         }
 
         init(from decoder: Decoder) throws {
@@ -66,8 +78,14 @@ struct ScheduleActivityAttributes: ActivityAttributes {
             nextTitle = try container.decodeIfPresent(String.self, forKey: .nextTitle) ?? ""
             nextStart = try container.decodeIfPresent(Date.self, forKey: .nextStart)
             updatedAt = try container.decodeIfPresent(Date.self, forKey: .updatedAt) ?? Date()
+            timeOffsetSeconds = try container.decodeIfPresent(
+                TimeInterval.self,
+                forKey: .timeOffsetSeconds
+            ) ?? 0
             accentRGBA = try container.decodeIfPresent(UInt32.self, forKey: .accentRGBA) ?? 0x05ABE8FF
             layout = try container.decodeIfPresent(LiveActivityLayout.self, forKey: .layout) ?? .default
+            weather = try container.decodeIfPresent(WeatherPresentation.self, forKey: .weather)
+            plugin = try container.decodeIfPresent(PluginActivityPresentation.self, forKey: .plugin)
         }
     }
 

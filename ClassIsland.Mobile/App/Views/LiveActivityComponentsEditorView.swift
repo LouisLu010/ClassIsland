@@ -207,9 +207,7 @@ private struct LiveActivityComponentRow: View {
                 Text(component.kind.title)
                     .font(.body.weight(.medium))
                     .foregroundStyle(.primary)
-                Text(component.kind == .customText && !component.customText.isEmpty
-                    ? component.customText
-                    : component.kind.description)
+                Text(subtitle)
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
@@ -231,6 +229,19 @@ private struct LiveActivityComponentRow: View {
                 .foregroundStyle(.tertiary)
         }
         .contentShape(Rectangle())
+    }
+
+    private var subtitle: String {
+        switch component.kind {
+        case .customText where !component.customText.isEmpty:
+            component.customText
+        case .weather:
+            "显示\(component.weatherMetric.title)。"
+        case .plugin:
+            "显示首个可用的插件实时活动内容。"
+        default:
+            component.kind.description
+        }
     }
 }
 
@@ -273,6 +284,26 @@ private struct LiveActivityComponentSettingsSheet: View {
                                     )
                                 }
                             }
+                    }
+                }
+
+                if component.kind == .clock {
+                    Section("时钟") {
+                        Toggle("显示秒数", isOn: $component.clockShowsSeconds)
+                        Toggle("使用系统时间", isOn: $component.clockUsesSystemTime)
+                    } footer: {
+                        Text("使用系统时间后，该组件不会应用“时钟”设置页中的课程时间偏移。")
+                    }
+                }
+
+                if component.kind == .weather {
+                    Section("天气") {
+                        Picker("显示内容", selection: $component.weatherMetric) {
+                            ForEach(WeatherMetric.allCases) { metric in
+                                Label(metric.title, systemImage: metric.systemImage)
+                                    .tag(metric)
+                            }
+                        }
                     }
                 }
 
@@ -425,15 +456,22 @@ private struct LiveActivityLayoutPreview: View {
     }
 
     private var expandedPreview: some View {
-        VStack(spacing: 8) {
-            HStack(alignment: .top, spacing: 12) {
+        VStack(spacing: 6) {
+            HStack(alignment: .top, spacing: 8) {
                 previewStack(.expandedLeading, alignment: .leading)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                previewStack(.expandedCenter, alignment: .center)
-                    .frame(maxWidth: .infinity, alignment: .center)
+
+                Capsule()
+                    .fill(Color.black)
+                    .frame(width: 82, height: 26)
+
                 previewStack(.expandedTrailing, alignment: .trailing)
                     .frame(maxWidth: .infinity, alignment: .trailing)
             }
+
+            previewStack(.expandedCenter, alignment: .center)
+                .frame(maxWidth: .infinity, alignment: .center)
+
             previewStack(.expandedBottom, alignment: .leading)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -447,6 +485,8 @@ private struct LiveActivityLayoutPreview: View {
             previewStack(.compactLeading, alignment: .leading)
             Spacer(minLength: 52)
             previewStack(.compactTrailing, alignment: .trailing)
+                .frame(minWidth: 44, alignment: .trailing)
+                .fixedSize(horizontal: true, vertical: false)
         }
         .padding(.horizontal, 14)
         .frame(width: 230, height: 38)
@@ -534,6 +574,7 @@ private struct PreviewComponentView: View {
                 case .countdown:
                     previewLabel("24:18", icon: "timer")
                         .monospacedDigit()
+                        .fixedSize(horizontal: true, vertical: false)
                 case .progress:
                     if component.showsIcon && isCompact {
                         Image(systemName: "chart.bar.fill")
@@ -546,11 +587,18 @@ private struct PreviewComponentView: View {
                     previewLabel(isCompact ? "英" : "下一节 英语 09:50", icon: "arrow.right.circle")
                 case .profileName:
                     previewLabel(isCompact ? "高二" : "高二（3）班", icon: "person.crop.rectangle")
+                case .weather:
+                    previewLabel(weatherPreviewText, icon: weatherPreviewIcon)
                 case .clock:
-                    previewLabel("08:21", icon: "clock")
+                    previewLabel(
+                        component.clockShowsSeconds ? "08:21:36" : "08:21",
+                        icon: "clock"
+                    )
                         .monospacedDigit()
                 case .date:
                     previewLabel("7月10日", icon: "calendar")
+                case .plugin:
+                    previewLabel(isCompact ? "插" : "插件 下一节英语", icon: "puzzlepiece.extension")
                 case .customText:
                     previewLabel(
                         component.customText.isEmpty ? "ClassIsland" : component.customText,
@@ -572,14 +620,34 @@ private struct PreviewComponentView: View {
         case .progress: minimalLabel("进", icon: "chart.bar.fill")
         case .nextLesson: minimalLabel("英", icon: "arrow.right.circle")
         case .profileName: minimalLabel("高", icon: "person.crop.rectangle")
+        case .weather:
+            minimalLabel(component.weatherMetric.shortTitle, icon: weatherPreviewIcon)
         case .clock: minimalLabel("时", icon: "clock")
         case .date: minimalLabel("日", icon: "calendar")
+        case .plugin: minimalLabel("插", icon: "puzzlepiece.extension")
         case .customText:
             minimalLabel(
                 String((component.customText.isEmpty ? "C" : component.customText).prefix(1)),
                 icon: "textformat"
             )
         }
+    }
+
+    private var weatherPreviewText: String {
+        switch component.weatherMetric {
+        case .condition: isCompact ? "晴 27°" : "晴 27℃"
+        case .humidity: "湿度 65%"
+        case .wind: "风速 8 km/h"
+        case .airQuality: "AQI 42"
+        case .pressure: "气压 1012 hPa"
+        case .feelsLike: "体感 29℃"
+        }
+    }
+
+    private var weatherPreviewIcon: String {
+        component.weatherMetric == .condition
+            ? "sun.max.fill"
+            : component.weatherMetric.systemImage
     }
 
     private func previewLabel(_ text: String, icon: String) -> some View {

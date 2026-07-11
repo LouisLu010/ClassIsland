@@ -28,12 +28,22 @@ struct ScheduleSnapshot: Equatable, Sendable {
     let current: ScheduleSession?
     let currentBreak: ScheduleBreak?
     let next: ScheduleSession?
+    let timeOffsetSeconds: TimeInterval
 
     var nextBoundary: Date? {
-        switch phase {
+        let courseBoundary: Date? = switch phase {
         case .inClass: current?.end
         case .upcoming, .breakTime: next?.start ?? currentBreak?.end
         case .noSchedule, .afterSchool: nil
         }
+        return systemDate(forCourseDate: courseBoundary)
+    }
+
+    func courseDate(forSystemDate date: Date) -> Date {
+        date.addingTimeInterval(timeOffsetSeconds)
+    }
+
+    func systemDate(forCourseDate date: Date?) -> Date? {
+        date?.addingTimeInterval(-timeOffsetSeconds)
     }
 }

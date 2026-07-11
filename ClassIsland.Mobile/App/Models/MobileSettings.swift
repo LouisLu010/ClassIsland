@@ -2,12 +2,19 @@ import Foundation
 import SwiftUI
 
 struct MobileSettings: Codable, Equatable, Sendable {
+    static let timeOffsetRange = -300.0...300.0
+    static let defaultWeatherCityID = "weathercn:101010100"
+    static let defaultWeatherCityName = "北京市 (中国)"
+
     var liveActivitiesEnabled = true
     var showTeacher = true
     var showCurrentLessonOnlyOnClass = false
     var useInitialInCompactIsland = true
     var keepAfterSchoolActivity = false
     var liveActivityLayout = LiveActivityLayout.default
+    var weatherEnabled = true
+    var weatherCityID = Self.defaultWeatherCityID
+    var weatherCityName = Self.defaultWeatherCityName
     var appearance = AppearancePreference.system
     var accent = AccentPreference.classIslandBlue
     var importedAccentHex: String?
@@ -19,6 +26,7 @@ struct MobileSettings: Codable, Equatable, Sendable {
     }()
     var rotationOffsets = [-1, -1, 0, 0, 0]
     var maxRotationCycle = 4
+    var timeOffsetSeconds = 0.0
 
     private enum CodingKeys: String, CodingKey {
         case liveActivitiesEnabled
@@ -27,12 +35,16 @@ struct MobileSettings: Codable, Equatable, Sendable {
         case useInitialInCompactIsland
         case keepAfterSchoolActivity
         case liveActivityLayout
+        case weatherEnabled
+        case weatherCityID
+        case weatherCityName
         case appearance
         case accent
         case importedAccentHex
         case singleWeekStartTime
         case rotationOffsets
         case maxRotationCycle
+        case timeOffsetSeconds
     }
 
     init() {}
@@ -51,6 +63,16 @@ struct MobileSettings: Codable, Equatable, Sendable {
             ?? defaults.keepAfterSchoolActivity
         liveActivityLayout = (try? container.decode(LiveActivityLayout.self, forKey: .liveActivityLayout))
             ?? defaults.liveActivityLayout
+        weatherEnabled = (try? container.decode(Bool.self, forKey: .weatherEnabled))
+            ?? defaults.weatherEnabled
+        let decodedWeatherCityID = (try? container.decode(String.self, forKey: .weatherCityID))?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        weatherCityID = decodedWeatherCityID.flatMap { $0.isEmpty ? nil : $0 }
+            ?? defaults.weatherCityID
+        let decodedWeatherCityName = (try? container.decode(String.self, forKey: .weatherCityName))?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        weatherCityName = decodedWeatherCityName.flatMap { $0.isEmpty ? nil : $0 }
+            ?? defaults.weatherCityName
         appearance = (try? container.decode(AppearancePreference.self, forKey: .appearance)) ?? defaults.appearance
         accent = (try? container.decode(AccentPreference.self, forKey: .accent)) ?? defaults.accent
         importedAccentHex = try? container.decode(String.self, forKey: .importedAccentHex)
@@ -61,6 +83,10 @@ struct MobileSettings: Codable, Equatable, Sendable {
         maxRotationCycle = min(
             max((try? container.decode(Int.self, forKey: .maxRotationCycle)) ?? defaults.maxRotationCycle, 2),
             12
+        )
+        timeOffsetSeconds = Self.clampedTimeOffset(
+            (try? container.decode(Double.self, forKey: .timeOffsetSeconds))
+                ?? defaults.timeOffsetSeconds
         )
 
         if rotationOffsets.count < 2 {
@@ -80,12 +106,16 @@ struct MobileSettings: Codable, Equatable, Sendable {
         try container.encode(useInitialInCompactIsland, forKey: .useInitialInCompactIsland)
         try container.encode(keepAfterSchoolActivity, forKey: .keepAfterSchoolActivity)
         try container.encode(liveActivityLayout, forKey: .liveActivityLayout)
+        try container.encode(weatherEnabled, forKey: .weatherEnabled)
+        try container.encode(weatherCityID, forKey: .weatherCityID)
+        try container.encode(weatherCityName, forKey: .weatherCityName)
         try container.encode(appearance, forKey: .appearance)
         try container.encode(accent, forKey: .accent)
         try container.encodeIfPresent(importedAccentHex, forKey: .importedAccentHex)
         try container.encode(singleWeekStartTime, forKey: .singleWeekStartTime)
         try container.encode(rotationOffsets, forKey: .rotationOffsets)
         try container.encode(maxRotationCycle, forKey: .maxRotationCycle)
+        try container.encode(timeOffsetSeconds, forKey: .timeOffsetSeconds)
     }
 
     var accentColor: Color {
@@ -119,6 +149,10 @@ struct MobileSettings: Codable, Equatable, Sendable {
             rotationOffsets.append(0)
         }
         rotationOffsets[cycle] = min(max(value, 0), cycle - 1)
+    }
+
+    static func clampedTimeOffset(_ value: Double) -> Double {
+        min(max(value, timeOffsetRange.lowerBound), timeOffsetRange.upperBound)
     }
 
     private static func color(hex: String) -> Color? {
@@ -198,6 +232,9 @@ struct ClassIslandWindowsSettings: Decodable, Sendable {
     let primaryColor: String?
     let selectedPalette: String?
     let showCurrentLessonOnlyOnClass: Bool?
+    let timeOffsetSeconds: Double?
+    let cityID: String?
+    let cityName: String?
 
     enum CodingKeys: String, CodingKey {
         case selectedProfile = "SelectedProfile"
@@ -209,6 +246,9 @@ struct ClassIslandWindowsSettings: Decodable, Sendable {
         case primaryColor = "PrimaryColor"
         case selectedPalette = "SelectedPlatte"
         case showCurrentLessonOnlyOnClass = "ShowCurrentLessonOnlyOnClass"
+        case timeOffsetSeconds = "TimeOffsetSeconds"
+        case cityID = "CityId"
+        case cityName = "CityName"
     }
 
     init(from decoder: Decoder) throws {
@@ -220,6 +260,9 @@ struct ClassIslandWindowsSettings: Decodable, Sendable {
         theme = try? container.decode(Int.self, forKey: .theme)
         colorSource = try? container.decode(Int.self, forKey: .colorSource)
         showCurrentLessonOnlyOnClass = try? container.decode(Bool.self, forKey: .showCurrentLessonOnlyOnClass)
+        timeOffsetSeconds = try? container.decode(Double.self, forKey: .timeOffsetSeconds)
+        cityID = try? container.decode(String.self, forKey: .cityID)
+        cityName = try? container.decode(String.self, forKey: .cityName)
         primaryColor = Self.decodeColor(from: container, forKey: .primaryColor)
         selectedPalette = Self.decodeColor(from: container, forKey: .selectedPalette)
     }

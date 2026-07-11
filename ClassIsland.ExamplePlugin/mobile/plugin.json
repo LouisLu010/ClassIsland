@@ -1,0 +1,110 @@
+{
+  "schemaVersion": 1,
+  "settings": [
+    {
+      "key": "showWeather",
+      "title": "显示天气组件",
+      "description": "在课表页显示当前天气。",
+      "type": "toggle",
+      "defaultValue": true
+    },
+    {
+      "key": "greeting",
+      "title": "问候语",
+      "description": "显示在示例插件的信息组件中。",
+      "type": "text",
+      "defaultValue": "今天也要加油",
+      "placeholder": "输入问候语"
+    },
+    {
+      "key": "notifyOnClassStart",
+      "title": "上课通知",
+      "description": "课程开始时发布一条本地通知。",
+      "type": "toggle",
+      "defaultValue": false
+    }
+  ],
+  "components": [
+    {
+      "id": "greeting",
+      "kind": "text",
+      "title": "示例插件",
+      "body": "{{settings.greeting}}",
+      "systemImage": "sparkles",
+      "tint": "#05ABE8"
+    },
+    {
+      "id": "nextLesson",
+      "kind": "metric",
+      "title": "下一节课",
+      "subtitle": "{{schedule.next.start}}",
+      "value": "{{schedule.next.subject}}",
+      "systemImage": "arrow.right.circle.fill",
+      "tint": "#1FB88C"
+    },
+    {
+      "id": "courseProgress",
+      "kind": "progress",
+      "title": "当前阶段进度",
+      "body": "{{schedule.phase.title}}",
+      "value": "{{schedule.progress}}",
+      "minimum": 0,
+      "maximum": 1,
+      "systemImage": "chart.bar.fill",
+      "tint": "#F57324"
+    },
+    {
+      "id": "weather",
+      "kind": "list",
+      "title": "当前天气",
+      "subtitle": "{{weather.city}}",
+      "systemImage": "cloud.sun.fill",
+      "when": {
+        "source": "settings.showWeather",
+        "equals": "true"
+      },
+      "items": [
+        {
+          "id": "condition",
+          "label": "天气",
+          "value": "{{weather.condition}}",
+          "systemImage": "sun.max"
+        },
+        {
+          "id": "temperature",
+          "label": "温度",
+          "value": "{{weather.temperature}}",
+          "systemImage": "thermometer.medium"
+        },
+        {
+          "id": "humidity",
+          "label": "湿度",
+          "value": "{{weather.humidity}}",
+          "systemImage": "humidity"
+        }
+      ]
+    }
+  ],
+  "events": [
+    {
+      "event": "schedule.classStarted",
+      "when": {
+        "source": "settings.notifyOnClassStart",
+        "equals": "true"
+      },
+      "actions": [
+        {
+          "kind": "notification.post",
+          "title": "{{schedule.current.subject}}开始上课",
+          "body": "任课教师：{{schedule.current.teacher}}"
+        }
+      ]
+    }
+  ],
+  "allowedDomains": [],
+  "liveActivity": {
+    "title": "下一节课",
+    "value": "{{schedule.next.subject}}",
+    "systemImage": "puzzlepiece.extension"
+  }
+}

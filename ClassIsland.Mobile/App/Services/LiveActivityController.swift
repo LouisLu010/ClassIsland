@@ -10,6 +10,8 @@ final class LiveActivityController {
     func synchronize(
         snapshot: ScheduleSnapshot,
         settings: MobileSettings,
+        weather: WeatherPresentation?,
+        plugin: PluginActivityPresentation?,
         now: Date = Date(),
         allowStarting: Bool = true
     ) async throws -> Bool {
@@ -28,8 +30,16 @@ final class LiveActivityController {
         let profileName = activityText(
             snapshot.profileName.isEmpty ? "ClassIsland" : snapshot.profileName
         )
-        let state = contentState(snapshot: snapshot, settings: settings, now: now)
-        let staleDate = snapshot.nextBoundary?.addingTimeInterval(120)
+        let state = contentState(
+            snapshot: snapshot,
+            settings: settings,
+            weather: weather,
+            plugin: plugin,
+            now: now
+        )
+        let staleDate = snapshot.nextBoundary?.addingTimeInterval(
+            ScheduleRefreshPolicy.liveActivityStaleLeeway
+        )
         let content = ActivityContent(state: state, staleDate: staleDate)
 
         if let activity = Activity<ScheduleActivityAttributes>.activities.first {
@@ -61,8 +71,11 @@ final class LiveActivityController {
             nextTitle: "",
             nextStart: nil,
             updatedAt: Date(),
+            timeOffsetSeconds: 0,
             accentRGBA: 0x05ABE8FF,
-            layout: .default
+            layout: .default,
+            weather: nil,
+            plugin: nil
         )
         let finalContent = ActivityContent(state: finalState, staleDate: nil)
         for activity in Activity<ScheduleActivityAttributes>.activities {
@@ -73,6 +86,8 @@ final class LiveActivityController {
     private func contentState(
         snapshot: ScheduleSnapshot,
         settings: MobileSettings,
+        weather: WeatherPresentation?,
+        plugin: PluginActivityPresentation?,
         now: Date
     ) -> ScheduleActivityAttributes.ContentState {
         let focus = snapshot.current ?? snapshot.next
@@ -84,16 +99,18 @@ final class LiveActivityController {
         switch snapshot.phase {
         case .inClass:
             headline = snapshot.current?.subject ?? snapshot.phase.title
-            timerStart = snapshot.current?.start
-            timerEnd = snapshot.current?.end
+            timerStart = snapshot.systemDate(forCourseDate: snapshot.current?.start)
+            timerEnd = snapshot.systemDate(forCourseDate: snapshot.current?.end)
         case .upcoming:
             headline = snapshot.next?.subject ?? snapshot.phase.title
             timerStart = now
-            timerEnd = snapshot.next?.start
+            timerEnd = snapshot.systemDate(forCourseDate: snapshot.next?.start)
         case .breakTime:
             headline = snapshot.currentBreak?.name ?? snapshot.phase.title
-            timerStart = snapshot.currentBreak?.start ?? now
-            timerEnd = snapshot.next?.start ?? snapshot.currentBreak?.end
+            timerStart = snapshot.systemDate(forCourseDate: snapshot.currentBreak?.start) ?? now
+            timerEnd = snapshot.systemDate(
+                forCourseDate: snapshot.next?.start ?? snapshot.currentBreak?.end
+            )
         case .afterSchool:
             headline = snapshot.phase.title
             timerStart = nil
@@ -137,8 +154,11 @@ final class LiveActivityController {
                 ? snapshot.next?.start
                 : nil,
             updatedAt: now,
+            timeOffsetSeconds: snapshot.timeOffsetSeconds,
             accentRGBA: settings.activityAccentRGBA,
-            layout: settings.liveActivityLayout
+            layout: settings.liveActivityLayout,
+            weather: settings.weatherEnabled ? weather : nil,
+            plugin: plugin
         )
     }
 

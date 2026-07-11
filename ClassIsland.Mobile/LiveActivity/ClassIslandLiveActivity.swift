@@ -1,4 +1,5 @@
 import ActivityKit
+import Foundation
 import SwiftUI
 import WidgetKit
 
@@ -12,11 +13,15 @@ struct ClassIslandLiveActivity: Widget {
             DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
                     ExpandedRegionView(context: context, region: .expandedLeading)
+                        .dynamicIsland(verticalPlacement: .belowIfTooWide)
                 }
+                .contentMargins(.trailing, 8)
 
                 DynamicIslandExpandedRegion(.trailing) {
                     ExpandedRegionView(context: context, region: .expandedTrailing)
+                        .dynamicIsland(verticalPlacement: .belowIfTooWide)
                 }
+                .contentMargins(.leading, 8)
 
                 DynamicIslandExpandedRegion(.center) {
                     ExpandedRegionView(context: context, region: .expandedCenter)
@@ -29,7 +34,8 @@ struct ClassIslandLiveActivity: Widget {
                 CompactRegionView(context: context, region: .compactLeading)
             } compactTrailing: {
                 CompactRegionView(context: context, region: .compactTrailing)
-                    .frame(minWidth: 28)
+                    .frame(minWidth: 44, alignment: .trailing)
+                    .fixedSize(horizontal: true, vertical: false)
             } minimal: {
                 MinimalRegionView(context: context)
             }
@@ -115,7 +121,10 @@ private struct ExpandedRegionView: View {
                 )
             }
         }
-        .frame(maxWidth: .infinity, alignment: frameAlignment)
+        .frame(
+            maxWidth: region == .expandedBottom ? .infinity : nil,
+            alignment: frameAlignment
+        )
     }
 
     private var horizontalAlignment: HorizontalAlignment {
@@ -192,6 +201,10 @@ private struct LiveActivityComponentView: View {
         activityAccentColor(context.state.accentRGBA)
     }
 
+    private var clockOffsetSeconds: TimeInterval {
+        component.clockUsesSystemTime ? 0 : context.state.timeOffsetSeconds
+    }
+
     var body: some View {
         Group {
             switch presentation {
@@ -231,11 +244,11 @@ private struct LiveActivityComponentView: View {
                         .font(.caption)
                 }
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(context.state.headline)
+                    Text(context.isStale ? "等待课程更新" : context.state.headline)
                         .font(presentation == .lockScreen ? .title2.weight(.bold) : .headline)
                         .lineLimit(1)
                         .minimumScaleFactor(0.72)
-                    if !context.state.teacher.isEmpty {
+                    if !context.isStale && !context.state.teacher.isEmpty {
                         Text(context.state.teacher)
                             .font(.caption)
                             .foregroundStyle(.secondary)
@@ -250,7 +263,11 @@ private struct LiveActivityComponentView: View {
                     Image(systemName: "timer")
                         .font(.caption)
                 }
-                CountdownLabel(state: context.state, compact: false)
+                CountdownLabel(
+                    state: context.state,
+                    compact: false,
+                    isStale: context.isStale
+                )
                     .font(presentation == .lockScreen ? .title2.weight(.semibold) : .title3.weight(.semibold))
                     .monospacedDigit()
             }
@@ -296,20 +313,48 @@ private struct LiveActivityComponentView: View {
                 font: .caption2
             )
 
+        case .weather:
+            weatherLabel(compact: false)
+                .font(.caption)
+
         case .clock:
             HStack(spacing: 4) {
                 if component.showsIcon { Image(systemName: "clock") }
-                Text(context.state.updatedAt, style: .time)
-                    .monospacedDigit()
+                LiveClockLabel(
+                    offsetSeconds: clockOffsetSeconds,
+                    showsSeconds: component.clockShowsSeconds
+                )
             }
             .font(.caption)
 
         case .date:
             HStack(spacing: 4) {
                 if component.showsIcon { Image(systemName: "calendar") }
-                Text(context.state.updatedAt, format: .dateTime.month().day())
+                LiveDateLabel(offsetSeconds: context.state.timeOffsetSeconds)
             }
             .font(.caption)
+
+        case .plugin:
+            if let plugin = context.state.plugin {
+                HStack(alignment: .firstTextBaseline, spacing: 5) {
+                    if component.showsIcon {
+                        Image(systemName: plugin.systemImage)
+                            .font(.caption)
+                    }
+                    VStack(alignment: .leading, spacing: 1) {
+                        if !plugin.title.isEmpty {
+                            Text(plugin.title)
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+                        Text(plugin.value.isEmpty ? "--" : plugin.value)
+                            .font(.caption.weight(.semibold))
+                            .lineLimit(1)
+                    }
+                }
+            } else {
+                iconText(text: "插件待提供", systemImage: "puzzlepiece.extension", font: .caption)
+            }
 
         case .customText:
             iconText(
@@ -325,25 +370,35 @@ private struct LiveActivityComponentView: View {
         switch component.kind {
         case .status:
             if component.showsIcon {
-                Image(systemName: phaseIcon(context.state.phase))
+                Image(
+                    systemName: context.isStale
+                        ? "arrow.clockwise.circle"
+                        : phaseIcon(context.state.phase)
+                )
             } else {
-                Text(shortPhaseLabel(context.state.phase))
+                Text(context.isStale ? "待" : shortPhaseLabel(context.state.phase))
                     .font(.caption2.weight(.bold))
             }
         case .currentLesson:
             compactLabel(
-                text: context.state.compactTitle,
-                systemImage: "book.closed.fill"
+                text: context.isStale ? "待" : context.state.compactTitle,
+                systemImage: context.isStale ? "arrow.clockwise.circle" : "book.closed.fill"
             )
         case .countdown:
             HStack(spacing: 3) {
                 if component.showsIcon {
                     Image(systemName: "timer")
                 }
-                CountdownLabel(state: context.state, compact: true)
+                CountdownLabel(
+                    state: context.state,
+                    compact: true,
+                    isStale: context.isStale
+                )
                     .monospacedDigit()
             }
             .font(.caption2.weight(.semibold))
+            .lineLimit(1)
+            .fixedSize(horizontal: true, vertical: false)
         case .progress:
             if component.showsIcon {
                 Image(systemName: "chart.bar.fill")
@@ -364,19 +419,38 @@ private struct LiveActivityComponentView: View {
                 text: String(context.attributes.profileName.prefix(2)),
                 systemImage: "person.crop.rectangle"
             )
+        case .weather:
+            weatherLabel(compact: true)
+                .font(.caption2.weight(.semibold))
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
+                .fixedSize(horizontal: true, vertical: false)
         case .clock:
             HStack(spacing: 3) {
                 if component.showsIcon { Image(systemName: "clock") }
-                Text(context.state.updatedAt, style: .time)
-                    .monospacedDigit()
+                LiveClockLabel(
+                    offsetSeconds: clockOffsetSeconds,
+                    showsSeconds: component.clockShowsSeconds
+                )
             }
             .font(.caption2)
+            .lineLimit(1)
+            .fixedSize(horizontal: true, vertical: false)
         case .date:
             HStack(spacing: 3) {
                 if component.showsIcon { Image(systemName: "calendar") }
-                Text(context.state.updatedAt, format: .dateTime.month().day())
+                LiveDateLabel(offsetSeconds: context.state.timeOffsetSeconds)
             }
             .font(.caption2)
+        case .plugin:
+            compactLabel(
+                text: String(
+                    (context.state.plugin?.value.isEmpty == false
+                        ? context.state.plugin?.value ?? ""
+                        : context.state.plugin?.title ?? "插").prefix(2)
+                ),
+                systemImage: context.state.plugin?.systemImage ?? "puzzlepiece.extension"
+            )
         case .customText:
             compactLabel(
                 text: String((component.customText.isEmpty ? "CI" : component.customText).prefix(2)),
@@ -390,18 +464,25 @@ private struct LiveActivityComponentView: View {
         switch component.kind {
         case .status:
             if component.showsIcon {
-                Image(systemName: phaseIcon(context.state.phase))
+                Image(
+                    systemName: context.isStale
+                        ? "arrow.clockwise.circle"
+                        : phaseIcon(context.state.phase)
+                )
             } else {
-                Text(shortPhaseLabel(context.state.phase))
+                Text(context.isStale ? "待" : shortPhaseLabel(context.state.phase))
                     .font(.caption2.weight(.bold))
             }
         case .currentLesson:
             minimalLabel(
-                text: String(context.state.compactTitle.prefix(1)),
-                systemImage: "book.closed.fill"
+                text: context.isStale ? "待" : String(context.state.compactTitle.prefix(1)),
+                systemImage: context.isStale ? "arrow.clockwise.circle" : "book.closed.fill"
             )
         case .countdown:
-            minimalLabel(text: "计", systemImage: "timer")
+            minimalLabel(
+                text: context.isStale ? "待" : "计",
+                systemImage: context.isStale ? "arrow.clockwise.circle" : "timer"
+            )
         case .progress:
             minimalLabel(text: "进", systemImage: "chart.bar.fill")
         case .nextLesson:
@@ -414,10 +495,25 @@ private struct LiveActivityComponentView: View {
                 text: String(context.attributes.profileName.prefix(1)),
                 systemImage: "person.crop.rectangle"
             )
+        case .weather:
+            minimalLabel(
+                text: component.weatherMetric.shortTitle,
+                systemImage: context.state.weather?.symbolName(for: component.weatherMetric)
+                    ?? "cloud.slash"
+            )
         case .clock:
             minimalLabel(text: "时", systemImage: "clock")
         case .date:
             minimalLabel(text: "日", systemImage: "calendar")
+        case .plugin:
+            minimalLabel(
+                text: String(
+                    (context.state.plugin?.value.isEmpty == false
+                        ? context.state.plugin?.value ?? ""
+                        : context.state.plugin?.title ?? "插").prefix(1)
+                ),
+                systemImage: context.state.plugin?.systemImage ?? "puzzlepiece.extension"
+            )
         case .customText:
             minimalLabel(
                 text: String((component.customText.isEmpty ? "C" : component.customText).prefix(1)),
@@ -458,24 +554,127 @@ private struct LiveActivityComponentView: View {
         .font(font)
         .foregroundStyle(component.isEmphasized ? accentColor : Color.secondary)
     }
+
+    private func weatherLabel(compact: Bool) -> some View {
+        HStack(spacing: compact ? 3 : 4) {
+            if component.showsIcon {
+                Image(
+                    systemName: context.state.weather?.symbolName(for: component.weatherMetric)
+                        ?? "cloud.slash"
+                )
+            }
+            if let weather = context.state.weather {
+                Text(
+                    compact
+                        ? weather.compactValue(for: component.weatherMetric)
+                        : weather.value(for: component.weatherMetric)
+                )
+            } else {
+                Text(compact ? "--" : "天气待更新")
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+}
+
+private struct LiveClockLabel: View {
+    let offsetSeconds: TimeInterval
+    let showsSeconds: Bool
+
+    private var updateInterval: TimeInterval {
+        showsSeconds ? 1 : 60
+    }
+
+    var body: some View {
+        TimelineView(
+            .periodic(
+                from: alignedTimelineStart(
+                    offsetSeconds: offsetSeconds,
+                    interval: updateInterval
+                ),
+                by: updateInterval
+            )
+        ) { context in
+            let date = context.date.addingTimeInterval(offsetSeconds)
+            Group {
+                if showsSeconds {
+                    Text(
+                        date,
+                        format: .dateTime
+                            .hour(.twoDigitsNoAMPM)
+                            .minute(.twoDigits)
+                            .second(.twoDigits)
+                            .locale(Locale(identifier: "en_GB"))
+                    )
+                } else {
+                    Text(
+                        date,
+                        format: .dateTime
+                            .hour(.twoDigitsNoAMPM)
+                            .minute(.twoDigits)
+                            .locale(Locale(identifier: "en_GB"))
+                    )
+                }
+            }
+            .monospacedDigit()
+            .lineLimit(1)
+        }
+    }
+}
+
+private struct LiveDateLabel: View {
+    let offsetSeconds: TimeInterval
+
+    var body: some View {
+        TimelineView(
+            .periodic(
+                from: alignedTimelineStart(offsetSeconds: offsetSeconds, interval: 60),
+                by: 60
+            )
+        ) { context in
+            Text(
+                context.date.addingTimeInterval(offsetSeconds),
+                format: .dateTime.month().day()
+            )
+            .lineLimit(1)
+        }
+    }
+}
+
+private func alignedTimelineStart(
+    offsetSeconds: TimeInterval,
+    interval: TimeInterval,
+    now: Date = Date()
+) -> Date {
+    let adjustedReference = now.timeIntervalSinceReferenceDate + offsetSeconds
+    let boundary = floor(adjustedReference / interval) * interval - offsetSeconds
+    return Date(timeIntervalSinceReferenceDate: boundary)
 }
 
 private struct CountdownLabel: View {
     let state: ScheduleActivityAttributes.ContentState
     let compact: Bool
+    let isStale: Bool
 
     var body: some View {
-        if let start = state.timerStart,
-           let end = state.timerEnd,
-           end > start {
-            Text(
-                timerInterval: start...end,
-                countsDown: true,
-                showsHours: !compact
-            )
-        } else {
-            Image(systemName: state.phase == .afterSchool ? "checkmark" : "minus")
+        Group {
+            if isStale {
+                Image(systemName: "arrow.clockwise.circle")
+            } else if let start = state.timerStart,
+                      let end = state.timerEnd,
+                      end > start {
+                Text(
+                    timerInterval: start...end,
+                    countsDown: true,
+                    showsHours: !compact
+                )
+            } else {
+                Image(systemName: state.phase == .afterSchool ? "checkmark" : "minus")
+            }
         }
+        .lineLimit(1)
+        .minimumScaleFactor(0.75)
+        .layoutPriority(1)
     }
 }
 
@@ -499,7 +698,7 @@ private struct ProgressBar: View {
 
 private extension LiveActivityComponentKind {
     var prefersFlexibleWidth: Bool {
-        self == .currentLesson || self == .progress || self == .nextLesson
+        self == .currentLesson || self == .progress || self == .nextLesson || self == .plugin
     }
 }
 

@@ -1,22 +1,31 @@
 import SwiftUI
+import UserNotifications
 
 @main
 struct ClassIslandMobileApp: App {
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var model = AppModel()
 
+    init() {
+        UNUserNotificationCenter.current().delegate = MobilePluginNotificationDelegate.shared
+    }
+
     var body: some Scene {
         WindowGroup {
             RootView()
                 .environmentObject(model)
+                .environmentObject(model.pluginManager)
                 .tint(model.settings.accentColor)
                 .preferredColorScheme(model.settings.appearance.colorScheme)
                 .task {
                     await model.bootstrap()
                 }
                 .onChange(of: scenePhase) { _, phase in
-                    guard phase == .active else { return }
-                    Task { await model.refreshCurrentSchedule() }
+                    if phase == .active {
+                        Task { await model.handleAppActive() }
+                    } else if phase == .inactive {
+                        Task { await model.refreshCurrentSchedule() }
+                    }
                 }
                 .onOpenURL { url in
                     if url.isFileURL {

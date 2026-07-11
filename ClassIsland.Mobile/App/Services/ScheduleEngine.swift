@@ -10,7 +10,8 @@ struct ScheduleEngine: Sendable {
     ) -> ScheduleSnapshot {
         var calendar = sourceCalendar
         calendar.locale = Locale(identifier: "zh_Hans_CN")
-        let date = selectedDate ?? now
+        let courseNow = now.addingTimeInterval(settings.timeOffsetSeconds)
+        let date = selectedDate ?? courseNow
         let planEntry = selectPlan(profile: profile, settings: settings, date: date, calendar: calendar)
         let sessions = planEntry.map {
             buildSessions(profile: profile, planId: $0.key, plan: $0.value, date: date, calendar: calendar)
@@ -29,14 +30,19 @@ struct ScheduleEngine: Sendable {
                 breaks: breaks,
                 current: nil,
                 currentBreak: nil,
-                next: nil
+                next: nil,
+                timeOffsetSeconds: settings.timeOffsetSeconds
             )
         }
 
-        let isToday = calendar.isDate(date, inSameDayAs: now)
-        let referenceTime = isToday ? now : calendar.startOfDay(for: date)
-        let current = isToday ? sessions.first(where: { $0.start <= referenceTime && $0.end >= referenceTime }) : nil
-        let currentBreak = isToday ? breaks.first(where: { $0.start <= referenceTime && $0.end >= referenceTime }) : nil
+        let isToday = calendar.isDate(date, inSameDayAs: courseNow)
+        let referenceTime = isToday ? courseNow : calendar.startOfDay(for: date)
+        let current = isToday
+            ? sessions.first(where: { $0.start <= referenceTime && referenceTime < $0.end })
+            : nil
+        let currentBreak = isToday
+            ? breaks.first(where: { $0.start <= referenceTime && referenceTime < $0.end })
+            : nil
         let next = isToday
             ? sessions.first(where: { session in
                 if let current {
@@ -51,7 +57,7 @@ struct ScheduleEngine: Sendable {
             phase = .upcoming
         } else if current != nil {
             phase = .inClass
-        } else if referenceTime > sessions[sessions.count - 1].end {
+        } else if referenceTime >= sessions[sessions.count - 1].end {
             phase = .afterSchool
         } else {
             phase = .breakTime
@@ -66,7 +72,8 @@ struct ScheduleEngine: Sendable {
             breaks: breaks,
             current: current,
             currentBreak: currentBreak,
-            next: next
+            next: next,
+            timeOffsetSeconds: settings.timeOffsetSeconds
         )
     }
 

@@ -98,7 +98,7 @@ enum ScheduleNotificationPlanner {
         plugin: PluginActivityPresentation?,
         now: Date = Date()
     ) -> [ScheduleNotificationPlan] {
-        let plans = snapshots.flatMap { snapshot in
+        let allPlans = snapshots.flatMap { snapshot in
             plans(
                 for: snapshot,
                 settings: settings,
@@ -107,7 +107,7 @@ enum ScheduleNotificationPlanner {
             )
         }
         var identifiers = Set<String>()
-        return plans
+        return allPlans
             .filter { $0.fireDate > now.addingTimeInterval(1) }
             .sorted { $0.fireDate < $1.fireDate }
             .filter { identifiers.insert($0.identifier).inserted }
@@ -291,31 +291,31 @@ enum ScheduleNotificationTextRenderer {
     ) -> String? {
         switch component.kind {
         case .status:
-            snapshot.phase.title
+            return snapshot.phase.title
         case .currentLesson:
-            currentLessonText(snapshot, settings: settings)
+            return currentLessonText(snapshot, settings: settings)
         case .countdown:
-            countdownText(snapshot)
+            return countdownText(snapshot)
         case .progress:
-            nil
+            return nil
         case .nextLesson:
-            snapshot.next.map { "下一节 \($0.subject) \(timeText($0.start))" }
+            return snapshot.next.map { "下一节 \($0.subject) \(timeText($0.start))" }
         case .profileName:
-            snapshot.profileName.isEmpty ? "ClassIsland" : snapshot.profileName
+            return snapshot.profileName.isEmpty ? "ClassIsland" : snapshot.profileName
         case .weather:
-            weather?.value(for: component.weatherMetric)
+            return weather?.value(for: component.weatherMetric)
         case .clock:
             let date = component.clockUsesSystemTime
                 ? eventDate
                 : snapshot.courseDate(forSystemDate: eventDate)
             return timeText(date, showsSeconds: component.clockShowsSeconds)
         case .date:
-            dateText(snapshot.courseDate(forSystemDate: eventDate))
+            return dateText(snapshot.courseDate(forSystemDate: eventDate))
         case .plugin:
             guard let plugin else { return nil }
             return [plugin.title, plugin.value].filter { !$0.isEmpty }.joined(separator: " ")
         case .customText:
-            component.customText
+            return component.customText
         }
     }
 

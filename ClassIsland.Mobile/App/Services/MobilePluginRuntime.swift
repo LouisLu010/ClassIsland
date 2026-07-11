@@ -8,7 +8,8 @@ struct MobilePluginRuntime: Sendable {
     ) -> [RenderedMobilePluginComponent] {
         plugins.flatMap { plugin in
             let values = settings[plugin.id] ?? [:]
-            return plugin.definition.components.compactMap { component in
+            return plugin.definition.components.compactMap {
+                component -> RenderedMobilePluginComponent? in
                 guard component.placement == .schedule,
                       conditionMatches(
                           component.when,
@@ -175,7 +176,7 @@ struct MobilePluginRuntime: Sendable {
             }
             return weatherValue(String(token.dropFirst("weather.".count)), weather: weather)
         }
-        switch token {
+        return switch token {
         case "now.time": time(context.now)
         case "now.date": context.now.formatted(date: .abbreviated, time: .omitted)
         case "plugin.name": plugin.manifest.name
@@ -185,7 +186,7 @@ struct MobilePluginRuntime: Sendable {
     }
 
     private func scheduleValue(_ key: String, schedule: ScheduleSnapshot, now: Date) -> String {
-        switch key {
+        return switch key {
         case "phase": schedule.phase.rawValue
         case "phase.title": schedule.phase.title
         case "profile": schedule.profileName
@@ -210,7 +211,7 @@ struct MobilePluginRuntime: Sendable {
     }
 
     private func weatherValue(_ key: String, weather: WeatherSnapshot) -> String {
-        switch key {
+        return switch key {
         case "city": weather.city.displayName
         case "condition": weather.presentation.conditionTitle
         case "temperature": weather.current.temperature

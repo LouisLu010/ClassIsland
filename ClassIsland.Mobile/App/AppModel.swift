@@ -61,15 +61,15 @@ final class AppModel: ObservableObject {
     init(
         repository: MobileRepository = MobileRepository(),
         engine: ScheduleEngine = ScheduleEngine(),
-        liveActivityController: LiveActivityController = .shared,
+        liveActivityController: LiveActivityController? = nil,
         weatherService: WeatherService = WeatherService(),
-        pluginManager: MobilePluginManager = MobilePluginManager()
+        pluginManager: MobilePluginManager? = nil
     ) {
         self.repository = repository
         self.engine = engine
-        self.liveActivityController = liveActivityController
+        self.liveActivityController = liveActivityController ?? .shared
         self.weatherService = weatherService
-        self.pluginManager = pluginManager
+        self.pluginManager = pluginManager ?? MobilePluginManager()
         settings = MobileSettings()
     }
 

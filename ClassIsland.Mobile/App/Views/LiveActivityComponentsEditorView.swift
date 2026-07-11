@@ -288,9 +288,11 @@ private struct LiveActivityComponentSettingsSheet: View {
                 }
 
                 if component.kind == .clock {
-                    Section("时钟") {
+                    Section {
                         Toggle("显示秒数", isOn: $component.clockShowsSeconds)
                         Toggle("使用系统时间", isOn: $component.clockUsesSystemTime)
+                    } header: {
+                        Text("时钟")
                     } footer: {
                         Text("使用系统时间后，该组件不会应用“时钟”设置页中的课程时间偏移。")
                     }

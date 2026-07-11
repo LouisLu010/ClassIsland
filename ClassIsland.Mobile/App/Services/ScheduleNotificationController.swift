@@ -418,6 +418,13 @@ final class ScheduleNotificationController {
         return settings.authorizationStatus
     }
 
+    func requestAuthorizationIfNeeded() async throws -> UNAuthorizationStatus {
+        let currentStatus = await authorizationStatus()
+        guard currentStatus == .notDetermined else { return currentStatus }
+        _ = try await center.requestAuthorization(options: [.alert, .sound])
+        return await authorizationStatus()
+    }
+
     @discardableResult
     func synchronize(
         snapshots: [ScheduleSnapshot],
@@ -474,8 +481,7 @@ final class ScheduleNotificationController {
             )
         }
         if status == .notDetermined && requestAuthorizationIfNeeded {
-            _ = try await center.requestAuthorization(options: [.alert, .sound])
-            status = await authorizationStatus()
+            status = try await self.requestAuthorizationIfNeeded()
             guard generation == synchronizationGeneration else {
                 return ScheduleNotificationSynchronizationResult(
                     authorizationStatus: status,

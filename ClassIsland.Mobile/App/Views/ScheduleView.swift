@@ -103,12 +103,21 @@ struct ScheduleView: View {
     }
 
     private var scheduleContent: some View {
-        ScrollView {
+        let renderedSnapshot = snapshot
+        return ScrollView {
             LazyVStack(spacing: 14) {
-                DateHeader(selectedDate: selectedDate, snapshot: snapshot)
+                DateHeader(selectedDate: selectedDate, snapshot: renderedSnapshot)
 
-                if let snapshot {
-                    ScheduleStatusCard(snapshot: snapshot, isToday: isCourseToday(selectedDate))
+                if let snapshot = renderedSnapshot {
+                    let sessions = displayedSessions(snapshot)
+                    let lastSessionID = sessions.last?.id
+                    ScheduleStatusCard(
+                        snapshot: snapshot,
+                        isToday: isCourseToday(selectedDate),
+                        accentColor: model.settings.accentColor,
+                        activityStatus: model.activityStatus,
+                        showTeacher: model.settings.showTeacher
+                    )
 
                     MobilePluginComponentsView(schedule: snapshot)
 
@@ -117,7 +126,7 @@ struct ScheduleView: View {
                             Text("全天课程")
                                 .font(.headline)
                             Spacer()
-                            Text("\(displayedSessions(snapshot).count) 节")
+                            Text("\(sessions.count) 节")
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
                         }
@@ -127,19 +136,21 @@ struct ScheduleView: View {
                         Divider()
                             .padding(.leading, 16)
 
-                        if displayedSessions(snapshot).isEmpty {
+                        if sessions.isEmpty {
                             Text("当天没有匹配的课表")
                                 .foregroundStyle(.secondary)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .padding(16)
                         } else {
-                            ForEach(displayedSessions(snapshot)) { session in
+                            ForEach(sessions) { session in
                                 DailySessionRow(
                                     session: session,
                                     isCurrent: snapshot.current?.id == session.id
-                                        && isCourseToday(selectedDate)
+                                        && isCourseToday(selectedDate),
+                                    accentColor: model.settings.accentColor,
+                                    showTeacher: model.settings.showTeacher
                                 )
-                                if session.id != displayedSessions(snapshot).last?.id {
+                                if session.id != lastSessionID {
                                     Divider()
                                         .padding(.leading, 76)
                                 }
@@ -200,9 +211,11 @@ private struct DateHeader: View {
 }
 
 private struct ScheduleStatusCard: View {
-    @EnvironmentObject private var model: AppModel
     let snapshot: ScheduleSnapshot
     let isToday: Bool
+    let accentColor: Color
+    let activityStatus: String
+    let showTeacher: Bool
 
     private var focus: ScheduleSession? {
         snapshot.current ?? snapshot.next
@@ -216,108 +229,102 @@ private struct ScheduleStatusCard: View {
     }
 
     var body: some View {
-        TimelineView(.periodic(from: .now, by: 1)) { context in
-            VStack(alignment: .leading, spacing: 14) {
-                HStack {
-                    Label(isToday ? snapshot.phase.title : "课程预览", systemImage: phaseIcon)
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(model.settings.accentColor)
-                    Spacer()
-                    if isToday {
-                        Text(model.activityStatus)
-                            .font(.caption.weight(.medium))
+        VStack(alignment: .leading, spacing: 14) {
+            HStack {
+                Label(isToday ? snapshot.phase.title : "课程预览", systemImage: phaseIcon)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(accentColor)
+                Spacer()
+                if isToday {
+                    Text(activityStatus)
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            if let focus {
+                HStack(alignment: .firstTextBaseline, spacing: 10) {
+                    Text(headline)
+                        .font(.system(size: 30, weight: .bold, design: .rounded))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.72)
+                    if snapshot.phase != .breakTime, focus.isOutdoor {
+                        Image(systemName: "figure.run")
                             .foregroundStyle(.secondary)
                     }
                 }
 
-                if let focus {
-                    HStack(alignment: .firstTextBaseline, spacing: 10) {
-                        Text(headline)
-                            .font(.system(size: 30, weight: .bold, design: .rounded))
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.72)
-                        if snapshot.phase != .breakTime, focus.isOutdoor {
-                            Image(systemName: "figure.run")
-                                .foregroundStyle(.secondary)
-                        }
+                HStack(spacing: 12) {
+                    if snapshot.phase == .breakTime, let currentBreak = snapshot.currentBreak {
+                        Label(timeRange(currentBreak), systemImage: "clock")
+                    } else {
+                        Label(timeRange(focus), systemImage: "clock")
                     }
+                    if snapshot.phase != .breakTime,
+                       showTeacher,
+                       !focus.teacher.isEmpty {
+                        Label(focus.teacher, systemImage: "person")
+                    }
+                }
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
 
-                    HStack(spacing: 12) {
-                        if snapshot.phase == .breakTime, let currentBreak = snapshot.currentBreak {
-                            Label(timeRange(currentBreak), systemImage: "clock")
-                        } else {
-                            Label(timeRange(focus), systemImage: "clock")
-                        }
-                        if snapshot.phase != .breakTime,
-                           model.settings.showTeacher,
-                           !focus.teacher.isEmpty {
-                            Label(focus.teacher, systemImage: "person")
-                        }
+                if isToday, snapshot.phase == .inClass, let current = snapshot.current {
+                    ScheduleProgressView(
+                        start: current.start,
+                        end: current.end,
+                        timeOffsetSeconds: snapshot.timeOffsetSeconds,
+                        tint: accentColor
+                    )
+                } else if isToday,
+                          snapshot.phase == .breakTime,
+                          let currentBreak = snapshot.currentBreak {
+                    ScheduleProgressView(
+                        start: currentBreak.start,
+                        end: currentBreak.end,
+                        timeOffsetSeconds: snapshot.timeOffsetSeconds,
+                        tint: accentColor
+                    )
+                }
+
+                if snapshot.phase == .inClass || snapshot.phase == .breakTime,
+                   let next = snapshot.next {
+                    HStack {
+                        Text("下一节")
+                            .foregroundStyle(.secondary)
+                        Text(next.subject)
+                            .fontWeight(.semibold)
+                        Spacer()
+                        Text(next.start, style: .time)
+                            .monospacedDigit()
+                            .foregroundStyle(.secondary)
                     }
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
-
-                    if isToday, snapshot.phase == .inClass, let current = snapshot.current {
-                        ProgressView(
-                            value: progress(
-                                from: current.start,
-                                to: current.end,
-                                now: snapshot.courseDate(forSystemDate: context.date)
-                            )
-                        )
-                            .tint(model.settings.accentColor)
-                    } else if isToday,
-                              snapshot.phase == .breakTime,
-                              let currentBreak = snapshot.currentBreak {
-                        ProgressView(
-                            value: progress(
-                                from: currentBreak.start,
-                                to: currentBreak.end,
-                                now: snapshot.courseDate(forSystemDate: context.date)
-                            )
-                        )
-                            .tint(model.settings.accentColor)
-                    }
-
-                    if snapshot.phase == .inClass || snapshot.phase == .breakTime,
-                       let next = snapshot.next {
-                        HStack {
-                            Text("下一节")
-                                .foregroundStyle(.secondary)
-                            Text(next.subject)
-                                .fontWeight(.semibold)
-                            Spacer()
-                            Text(next.start, style: .time)
-                                .monospacedDigit()
-                                .foregroundStyle(.secondary)
-                        }
-                        .font(.subheadline)
-                    }
-                } else {
-                    Text(snapshot.phase.title)
-                        .font(.title3.weight(.semibold))
-                    Text("换个日期看看，或在设置中重新导入课表。")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
                 }
+            } else {
+                Text(snapshot.phase.title)
+                    .font(.title3.weight(.semibold))
+                Text("换个日期看看，或在设置中重新导入课表。")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
             }
-            .padding(18)
-            .background(
-                LinearGradient(
-                    colors: [
-                        model.settings.accentColor.opacity(0.16),
-                        Color(uiColor: .secondarySystemGroupedBackground)
-                    ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
+        }
+        .padding(18)
+        .background(
+            LinearGradient(
+                colors: [
+                    accentColor.opacity(0.16),
+                    Color(uiColor: .secondarySystemGroupedBackground)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
             )
-            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-            .overlay(alignment: .leading) {
-                Rectangle()
-                    .fill(model.settings.accentColor)
-                    .frame(width: 4)
-            }
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .overlay(alignment: .leading) {
+            Rectangle()
+                .fill(accentColor)
+                .frame(width: 4)
         }
     }
 
@@ -331,12 +338,6 @@ private struct ScheduleStatusCard: View {
         }
     }
 
-    private func progress(from start: Date, to end: Date, now: Date) -> Double {
-        let duration = end.timeIntervalSince(start)
-        guard duration > 0 else { return 0 }
-        return min(max(now.timeIntervalSince(start) / duration, 0), 1)
-    }
-
     private func timeRange(_ session: ScheduleSession) -> String {
         "\(session.start.formatted(date: .omitted, time: .shortened)) – \(session.end.formatted(date: .omitted, time: .shortened))"
     }
@@ -346,18 +347,43 @@ private struct ScheduleStatusCard: View {
     }
 }
 
+private struct ScheduleProgressView: View {
+    let start: Date
+    let end: Date
+    let timeOffsetSeconds: TimeInterval
+    let tint: Color
+
+    var body: some View {
+        TimelineView(.periodic(from: .now, by: 1)) { context in
+            ProgressView(
+                value: progress(
+                    now: context.date.addingTimeInterval(timeOffsetSeconds)
+                )
+            )
+            .tint(tint)
+        }
+    }
+
+    private func progress(now: Date) -> Double {
+        let duration = end.timeIntervalSince(start)
+        guard duration > 0 else { return 0 }
+        return min(max(now.timeIntervalSince(start) / duration, 0), 1)
+    }
+}
+
 private struct DailySessionRow: View {
-    @EnvironmentObject private var model: AppModel
     let session: ScheduleSession
     let isCurrent: Bool
+    let accentColor: Color
+    let showTeacher: Bool
 
     var body: some View {
         HStack(spacing: 14) {
             Text("\(session.index + 1)")
                 .font(.subheadline.weight(.bold))
-                .foregroundStyle(isCurrent ? .white : model.settings.accentColor)
+                .foregroundStyle(isCurrent ? .white : accentColor)
                 .frame(width: 34, height: 34)
-                .background(isCurrent ? model.settings.accentColor : model.settings.accentColor.opacity(0.12))
+                .background(isCurrent ? accentColor : accentColor.opacity(0.12))
                 .clipShape(Circle())
 
             VStack(alignment: .leading, spacing: 4) {
@@ -370,7 +396,7 @@ private struct DailySessionRow: View {
                             .foregroundStyle(.secondary)
                     }
                 }
-                if model.settings.showTeacher, !session.teacher.isEmpty {
+                if showTeacher, !session.teacher.isEmpty {
                     Text(session.teacher)
                         .font(.caption)
                         .foregroundStyle(.secondary)
@@ -388,6 +414,6 @@ private struct DailySessionRow: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
-        .background(isCurrent ? model.settings.accentColor.opacity(0.08) : Color.clear)
+        .background(isCurrent ? accentColor.opacity(0.08) : Color.clear)
     }
 }

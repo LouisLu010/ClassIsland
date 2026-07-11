@@ -124,6 +124,9 @@ final class AppModel: ObservableObject {
             updated.reminderSurfaces.remove(surface)
         }
         settings = updated
+        if surface == .systemNotification && isEnabled {
+            lastNotificationSignature = nil
+        }
     }
 
     func refreshReminderAvailability() async {
@@ -747,7 +750,10 @@ final class AppModel: ObservableObject {
             weather: activityWeather,
             plugin: pluginPresentation
         )
-        guard signature != lastNotificationSignature else { return }
+        let needsForegroundAuthorization = requestAuthorizationIfNeeded
+            && settings.systemNotificationsEnabled
+            && notificationAuthorizationStatus == .notDetermined
+        guard signature != lastNotificationSignature || needsForegroundAuthorization else { return }
 
         do {
             let result = try await scheduleNotificationController.synchronize(

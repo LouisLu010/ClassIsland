@@ -15,27 +15,33 @@ struct ClassIslandLiveActivity: Widget {
                     ExpandedRegionView(context: context, region: .expandedLeading)
                         .dynamicIsland(verticalPlacement: .belowIfTooWide)
                 }
-                .contentMargins(.trailing, 8)
+                .contentMargins(.trailing, 16)
+                .contentMargins(.top, 8)
 
                 DynamicIslandExpandedRegion(.trailing) {
                     ExpandedRegionView(context: context, region: .expandedTrailing)
                         .dynamicIsland(verticalPlacement: .belowIfTooWide)
                 }
-                .contentMargins(.leading, 8)
+                .contentMargins(.leading, 16)
+                .contentMargins(.top, 8)
 
                 DynamicIslandExpandedRegion(.center) {
                     ExpandedRegionView(context: context, region: .expandedCenter)
+                        .dynamicIsland(verticalPlacement: .belowIfTooWide)
                 }
+                .contentMargins(.horizontal, 12)
+                .contentMargins(.top, 12)
 
                 DynamicIslandExpandedRegion(.bottom) {
                     ExpandedRegionView(context: context, region: .expandedBottom)
                 }
+                .contentMargins(.horizontal, 12)
+                .contentMargins(.top, 6)
             } compactLeading: {
                 CompactRegionView(context: context, region: .compactLeading)
             } compactTrailing: {
                 CompactRegionView(context: context, region: .compactTrailing)
-                    .frame(minWidth: 44, alignment: .trailing)
-                    .fixedSize(horizontal: true, vertical: false)
+                    .frame(minWidth: 36, idealWidth: 40, maxWidth: 46, alignment: .trailing)
             } minimal: {
                 MinimalRegionView(context: context)
             }
@@ -398,7 +404,8 @@ private struct LiveActivityComponentView: View {
             }
             .font(.caption2.weight(.semibold))
             .lineLimit(1)
-            .fixedSize(horizontal: true, vertical: false)
+            .minimumScaleFactor(0.65)
+            .frame(minWidth: 34, idealWidth: 38, maxWidth: 42, alignment: .trailing)
         case .progress:
             if component.showsIcon {
                 Image(systemName: "chart.bar.fill")
@@ -658,9 +665,7 @@ private struct CountdownLabel: View {
 
     var body: some View {
         Group {
-            if isStale {
-                Image(systemName: "arrow.clockwise.circle")
-            } else if let start = state.timerStart,
+            if let start = state.timerStart,
                       let end = state.timerEnd,
                       end > start {
                 Text(
@@ -668,6 +673,8 @@ private struct CountdownLabel: View {
                     countsDown: true,
                     showsHours: !compact
                 )
+            } else if isStale {
+                Image(systemName: "arrow.clockwise.circle")
             } else {
                 Image(systemName: state.phase == .afterSchool ? "checkmark" : "minus")
             }

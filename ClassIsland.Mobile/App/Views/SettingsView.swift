@@ -1,6 +1,8 @@
 import Foundation
 import SwiftUI
+import UIKit
 import UniformTypeIdentifiers
+import UserNotifications
 
 struct SettingsView: View {
     @EnvironmentObject private var model: AppModel
@@ -313,6 +315,17 @@ struct SettingsView: View {
             }
             .disabled(!model.reminderCapabilities.supports(.systemNotification))
             .opacity(model.reminderCapabilities.supports(.systemNotification) ? 1 : 0.5)
+
+            if model.notificationAuthorizationStatus == .denied {
+                SettingsActionCard(
+                    systemImage: "gearshape",
+                    title: "允许系统通知",
+                    description: "通知权限已被关闭，请在系统设置中为 ClassIsland 启用通知。"
+                ) {
+                    guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
+                    UIApplication.shared.open(url)
+                }
+            }
 
             SettingsInfoBanner(
                 "灵动岛和锁屏实时活动由同一个 ActivityKit 活动提供，任一选项启用时都会同步同一份课程状态。"

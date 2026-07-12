@@ -318,12 +318,13 @@ jobs:
               --style compact \
               --last 10m \
               --predicate "process == '$SIMULATOR_APP_EXECUTABLE'" \
-              > "$diagnostics/app.log" 2>&1
+              > "$diagnostics/app.log" 2>&1 || true
           fi
           if [[ -n "${SIMULATOR_APP_PID:-}" ]]; then
             ps -p "$SIMULATOR_APP_PID" -o pid,ppid,state,etime,command \
-              > "$diagnostics/process.txt" 2>&1
+              > "$diagnostics/process.txt" 2>&1 || true
           fi
+          exit 0
 
       - name: Upload simulator diagnostics
         if: always()

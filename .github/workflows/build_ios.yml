@@ -2,6 +2,33 @@ name: Build Avalonia iOS
 
 on:
   workflow_dispatch:
+    inputs:
+      source_ref:
+        description: Commit, tag, or branch to build (defaults to the workflow revision)
+        required: false
+        type: string
+      device_aot_mode:
+        description: Managed execution mode for the device IPA
+        required: true
+        default: hybrid
+        type: choice
+        options:
+          - hybrid
+          - full
+          - interpreter
+      run_simulator:
+        description: Also run the iPad simulator smoke test
+        required: true
+        default: false
+        type: boolean
+      symbolicate_load_address:
+        description: Optional hexadecimal load address from an iOS crash report
+        required: false
+        type: string
+      symbolicate_addresses:
+        description: Optional space-separated absolute addresses to resolve with atos
+        required: false
+        type: string
   push:
     paths:
       - "ClassIsland.Mobile.Avalonia/**"
@@ -42,7 +69,7 @@ permissions:
   packages: read
 
 concurrency:
-  group: avalonia-ios-${{ github.workflow }}-${{ github.ref }}
+  group: avalonia-ios-${{ github.workflow }}-${{ github.ref }}-${{ inputs.source_ref || 'current' }}-${{ inputs.device_aot_mode || 'hybrid' }}
   cancel-in-progress: true
 
 env:
@@ -50,6 +77,9 @@ env:
   DOTNET_NOLOGO: "1"
   IOS_PROJECT: ClassIsland.Mobile.Avalonia.iOS/ClassIsland.Mobile.Avalonia.iOS.csproj
   IPA_NAME: ClassIsland-Avalonia-iOS-unsigned.ipa
+  DEVICE_AOT_MODE: ${{ inputs.device_aot_mode || 'hybrid' }}
+  SYMBOLICATE_LOAD_ADDRESS: ${{ inputs.symbolicate_load_address || '' }}
+  SYMBOLICATE_ADDRESSES: ${{ inputs.symbolicate_addresses || '' }}
 
 jobs:
   build:
@@ -65,6 +95,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          ref: ${{ inputs.source_ref || github.sha }}
           fetch-depth: 0
           submodules: recursive
 
@@ -78,6 +109,10 @@ jobs:
       - name: Show build environment
         run: |
           set -euo pipefail
+          source_sha="$(git rev-parse HEAD)"
+          echo "SOURCE_SHA=$source_sha" >> "$GITHUB_ENV"
+          echo "Source revision: $source_sha"
+          echo "Device AOT mode: $DEVICE_AOT_MODE"
           dotnet --info
           dotnet --version | grep -E '^9\.0\.'
           xcodebuild -version
@@ -110,6 +145,29 @@ jobs:
       - name: Publish unsigned device app
         run: |
           set -euo pipefail
+          aot_properties=()
+          case "$DEVICE_AOT_MODE" in
+            hybrid)
+              ;;
+            full)
+              aot_properties+=(
+                "-p:MtouchInterpreter=-all"
+                "-p:MtouchUseLlvm=false"
+                "-p:_IsDedupEnabled=false"
+              )
+              ;;
+            interpreter)
+              aot_properties+=(
+                "-p:MtouchInterpreter=all"
+                "-p:_IsDedupEnabled=false"
+              )
+              ;;
+            *)
+              echo "Unsupported device AOT mode: $DEVICE_AOT_MODE" >&2
+              exit 2
+              ;;
+          esac
+
           dotnet publish "$IOS_PROJECT" \
             --configuration Release \
             --framework net8.0-ios \
@@ -121,6 +179,7 @@ jobs:
             -p:ArchiveOnBuild=false \
             -p:BuildIpa=false \
             -p:ValidateXcodeVersion=false \
+            "${aot_properties[@]}" \
             -bl:"$RUNNER_TEMP/ClassIsland-Avalonia-iOS.binlog"
 
       - name: Package unsigned IPA
@@ -150,6 +209,11 @@ jobs:
           test -f "$app_path/PlugIns/ClassIslandLiveActivity.appex/$extension_executable"
           /usr/bin/file "$app_path/$executable" | grep -q 'arm64'
           /usr/bin/file "$app_path/PlugIns/ClassIslandLiveActivity.appex/$extension_executable" | grep -q 'arm64'
+          if [[ "$DEVICE_AOT_MODE" == "full" ]]; then
+            test -f "$app_path/ClassIsland.Core.aotdata.arm64"
+          else
+            test ! -f "$app_path/ClassIsland.Core.aotdata.arm64"
+          fi
 
           package_dir="$RUNNER_TEMP/ClassIsland-Avalonia-ipa"
           output_dir="$GITHUB_WORKSPACE/artifacts"
@@ -172,27 +236,78 @@ jobs:
             cd "$output_dir"
             shasum -a 256 "$IPA_NAME" > "$IPA_NAME.sha256"
           )
+          printf '%s\n' "$DEVICE_AOT_MODE" > "$output_dir/aot-mode.txt"
 
       - name: Upload unsigned IPA
         uses: actions/upload-artifact@v4
         with:
-          name: ClassIsland-Avalonia-iOS-unsigned-${{ github.sha }}
+          name: ClassIsland-Avalonia-iOS-${{ env.DEVICE_AOT_MODE }}-${{ env.SOURCE_SHA }}
           path: |
             artifacts/${{ env.IPA_NAME }}
             artifacts/${{ env.IPA_NAME }}.sha256
+            artifacts/aot-mode.txt
           if-no-files-found: error
           retention-days: 14
 
-      - name: Upload MSBuild log on failure
-        if: failure()
+      - name: Collect device diagnostics
+        if: always()
+        run: |
+          set +e
+          diagnostics="$RUNNER_TEMP/ClassIsland-Avalonia-iOS-diagnostics"
+          search_root="$GITHUB_WORKSPACE/ClassIsland.Mobile.Avalonia/ClassIsland.Mobile.Avalonia.iOS/bin/Release/net8.0-ios/ios-arm64"
+          mkdir -p "$diagnostics"
+
+          if [[ -f "$RUNNER_TEMP/ClassIsland-Avalonia-iOS.binlog" ]]; then
+            cp "$RUNNER_TEMP/ClassIsland-Avalonia-iOS.binlog" "$diagnostics/"
+          fi
+
+          app_path="$(find "$search_root" -type d -name '*.app' -prune -print 2>/dev/null | sed -n '1p')"
+          if [[ -n "$app_path" && -f "$app_path/Info.plist" ]]; then
+            executable="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$app_path/Info.plist")"
+            if [[ -f "$app_path/$executable" ]]; then
+              /usr/bin/file "$app_path/$executable" > "$diagnostics/executable.txt" 2>&1
+              /usr/bin/dwarfdump --uuid "$app_path/$executable" > "$diagnostics/uuid.txt" 2>&1
+              xcrun dsymutil \
+                "$app_path/$executable" \
+                -o "$diagnostics/$executable.app.dSYM" \
+                > "$diagnostics/dsymutil.log" 2>&1 || true
+              dwarf_binary="$diagnostics/$executable.app.dSYM/Contents/Resources/DWARF/$executable"
+              if [[ -f "$dwarf_binary" && -n "$SYMBOLICATE_LOAD_ADDRESS" && -n "$SYMBOLICATE_ADDRESSES" ]]; then
+                read -r -a crash_addresses <<< "$SYMBOLICATE_ADDRESSES"
+                xcrun atos \
+                  -arch arm64 \
+                  -o "$dwarf_binary" \
+                  -l "$SYMBOLICATE_LOAD_ADDRESS" \
+                  "${crash_addresses[@]}" \
+                  > "$diagnostics/atos.txt" 2>&1 || true
+              fi
+            fi
+
+            find "$app_path" -maxdepth 1 -type f -name '*.aotdata.arm64' -print \
+              | sort > "$diagnostics/aot-files.txt"
+          fi
+
+          while IFS= read -r -d '' dsym; do
+            destination="$diagnostics/$(basename "$dsym")"
+            if [[ "$dsym" != "$destination" ]]; then
+              /usr/bin/ditto "$dsym" "$destination"
+            fi
+          done < <(find "$search_root" -type d -name '*.dSYM' -print0 2>/dev/null)
+
+          find "$search_root" -type f \( -name '*.mSYM' -o -name '*.map' \) -exec cp {} "$diagnostics/" \; 2>/dev/null || true
+          exit 0
+
+      - name: Upload device diagnostics
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ClassIsland-Avalonia-iOS-binlog-${{ github.sha }}
-          path: ${{ runner.temp }}/ClassIsland-Avalonia-iOS.binlog
-          if-no-files-found: ignore
-          retention-days: 7
+          name: ClassIsland-Avalonia-iOS-diagnostics-${{ env.DEVICE_AOT_MODE }}-${{ env.SOURCE_SHA }}
+          path: ${{ runner.temp }}/ClassIsland-Avalonia-iOS-diagnostics
+          if-no-files-found: warn
+          retention-days: 14
 
   simulator-smoke:
+    if: github.event_name != 'workflow_dispatch' || inputs.run_simulator
     runs-on: macos-15
     timeout-minutes: 60
 
@@ -205,6 +320,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          ref: ${{ inputs.source_ref || github.sha }}
           fetch-depth: 0
           submodules: recursive
 

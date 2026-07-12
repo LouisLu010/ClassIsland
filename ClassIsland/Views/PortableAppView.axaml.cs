@@ -12,6 +12,7 @@ using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Styling;
 using Avalonia.VisualTree;
+using ClassIsland.Core.Assists;
 using ClassIsland.Views.SettingPages;
 using ClassIsland.Services;
 using Microsoft.Extensions.Logging;
@@ -55,6 +56,12 @@ public partial class PortableAppView : UserControl
         AttachInputPane();
         RemoveHandler(GotFocusEvent, OnDescendantGotFocus);
         AddHandler(GotFocusEvent, OnDescendantGotFocus, RoutingStrategies.Bubble, true);
+        RemoveHandler(PointerPressedEvent, OnDescendantPointerPressed);
+        AddHandler(
+            PointerPressedEvent,
+            OnDescendantPointerPressed,
+            RoutingStrategies.Tunnel | RoutingStrategies.Bubble,
+            true);
         SizeChanged -= OnHostSizeChanged;
         SizeChanged += OnHostSizeChanged;
 
@@ -78,6 +85,7 @@ public partial class PortableAppView : UserControl
     {
         DetachInputPane();
         RemoveHandler(GotFocusEvent, OnDescendantGotFocus);
+        RemoveHandler(PointerPressedEvent, OnDescendantPointerPressed);
         SizeChanged -= OnHostSizeChanged;
         ResetPageContentOffset();
     }
@@ -190,6 +198,9 @@ public partial class PortableAppView : UserControl
 
     private void OnDescendantGotFocus(object? sender, GotFocusEventArgs e) =>
         UpdatePageContentOffsetForOpenInputPane();
+
+    private void OnDescendantPointerPressed(object? sender, PointerPressedEventArgs e) =>
+        PointerStateAssist.SetIsTouchMode(this, e.Pointer.Type == PointerType.Touch);
 
     private void OnHostSizeChanged(object? sender, SizeChangedEventArgs e) =>
         UpdatePageContentOffsetForOpenInputPane();

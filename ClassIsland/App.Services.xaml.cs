@@ -102,6 +102,10 @@ public partial class App
         {
             services.AddSingleton<IAudioService, UnavailableAudioService>();
         }
+        else if (System.OperatingSystem.IsIOS())
+        {
+            services.AddSingleton<IAudioService, ResilientAudioService>();
+        }
         else
         {
             services.AddSingleton<IAudioService, AudioService>();

@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.iOS;
 using ClassIsland.Mobile.Avalonia.Services;
 using Foundation;
+using UIKit;
 using DesktopApp = ClassIsland.App;
 using AppHost = ClassIsland.Shared.IAppHost;
 using DesktopPortableView = ClassIsland.Views.PortableAppView;
@@ -19,10 +20,18 @@ public partial class AppDelegate : AvaloniaAppDelegate<DesktopApp>
     {
         AppServices.Platform = new IosMobilePlatform();
         ConfigurePortableCapabilities();
+        DesktopApp.PortableUriLauncher = uri =>
+            UIApplication.SharedApplication.OpenUrlAsync(
+                new NSUrl(uri.AbsoluteUri),
+                new UIApplicationOpenUrlOptions());
         DesktopApp.PortableMainViewFactory = () =>
         {
-            _liveActivityCoordinator ??= new AvaloniaLiveActivityCoordinator();
-            _liveActivityCoordinator.Start();
+            if (AppServices.Platform.Capabilities.SupportsLiveActivities)
+            {
+                _liveActivityCoordinator ??= new AvaloniaLiveActivityCoordinator();
+                _liveActivityCoordinator.Start();
+            }
+
             return AppHost.GetService<DesktopPortableView>();
         };
         return base.CustomizeAppBuilder(builder)

@@ -378,6 +378,11 @@ public partial class App : AppBase, IAppHost
         //     return;
         // }
 #endif
+        if (IsPortableModeRequested)
+        {
+            CrashReportService.PersistEmergency(e);
+        }
+
         Logger?.LogCritical(e, "发生严重错误");
         IsCrashed = true;
         var safe = _isCriticalSafeModeEnabled && (!(IAppHost.TryGetService<IWindowRuleService>()?.IsForegroundWindowClassIsland() ?? false));
@@ -427,6 +432,17 @@ public partial class App : AppBase, IAppHost
                                  """;
                 crashInfo = traceInfo + crashInfo;
             }
+
+            if (IsPortableModeRequested)
+            {
+                IAppHost.TryGetService<CrashReportService>()?.Publish(new CrashReport(
+                    crashInfo,
+                    critical,
+                    _isStartedCompleted && !critical));
+                await NavigatePortableAsync("crash");
+                return;
+            }
+
             CrashWindow = new CrashWindow()
             {
                 CrashInfo = crashInfo,

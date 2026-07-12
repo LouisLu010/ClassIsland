@@ -9,6 +9,8 @@
   <string>ClassIsland Avalonia</string>
   <key>CFBundleIdentifier</key>
   <string>cn.classisland.mobile.avalonia</string>
+  <key>XSAppIconAssets</key>
+  <string>Assets.xcassets/AppIcon.appiconset</string>
   <key>CFBundleShortVersionString</key>
   <string>0.1.0</string>
   <key>CFBundleVersion</key>

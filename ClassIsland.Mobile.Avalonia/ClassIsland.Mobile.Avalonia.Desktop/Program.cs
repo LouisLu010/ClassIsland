@@ -16,6 +16,15 @@ internal static class Program
             ConfigurePortableCapabilities();
             DesktopApp.PortableMainViewFactory =
                 () => AppHost.GetService<DesktopPortableView>();
+            DesktopApp.PortableUriLauncher = uri =>
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = uri.AbsoluteUri,
+                    UseShellExecute = true
+                });
+                return Task.FromResult(true);
+            };
             DesktopApp.ForcePortableDesktopHost = true;
             BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
         }

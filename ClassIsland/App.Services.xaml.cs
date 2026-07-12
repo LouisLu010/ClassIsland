@@ -73,6 +73,7 @@ public partial class App
         services.AddSingleton<ConsoleService>();
         //services.AddHostedService<BootService>();
         services.AddSingleton<DiagnosticService>();
+        services.AddSingleton<CrashReportService>();
         services.AddSingleton<IManagementService, ManagementService>();
         services.AddSingleton<AppLogService>();
         services.AddSingleton<IComponentsService, ComponentsService>();
@@ -162,6 +163,7 @@ public partial class App
             services.AddSettingsPageSingleton<PortableProfileSettingsPage>();
             services.AddSettingsPageSingleton<PortableDataTransferSettingsPage>();
             services.AddSettingsPageSingleton<PortableLogsSettingsPage>();
+            services.AddSettingsPageSingleton<PortableCrashSettingsPage>();
         }
         // 设置页面分组
         services.AddSettingsPageGroup("classisland.general", "\uef27", "通用");

@@ -200,6 +200,11 @@ public class DiagnosticService(SettingsService settingsService, FileFolderServic
     /// </summary>
     public static void ProcessDomainUnhandledException(object sender, UnhandledExceptionEventArgs eventArgs)
     {
+        if (App.IsPortableModeRequested && eventArgs.ExceptionObject is Exception portableException)
+        {
+            CrashReportService.PersistEmergency(portableException);
+        }
+
         App.IsCrashed = true;
         if (App._isCriticalSafeModeEnabled)  // 教学安全模式
         {
@@ -233,6 +238,11 @@ public class DiagnosticService(SettingsService settingsService, FileFolderServic
     /// <param name="ex">异常信息</param>
     public static void ProcessCriticalException(Exception? ex)
     {
+        if (App.IsPortableModeRequested && ex is not null)
+        {
+            CrashReportService.PersistEmergency(ex);
+        }
+
         if (App._isCriticalSafeModeEnabled)  // 教学安全模式
         {
             return;

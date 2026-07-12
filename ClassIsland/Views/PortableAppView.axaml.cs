@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using ClassIsland.Views.SettingPages;
+using ClassIsland.Services;
 using Microsoft.Extensions.Logging;
 
 namespace ClassIsland.Views;
@@ -14,12 +15,17 @@ public partial class PortableAppView : UserControl
 {
     private readonly SettingsView _settingsView;
     private readonly ILogger<PortableAppView> _logger;
+    private readonly CrashReportService _crashReportService;
     private bool _initialized;
 
-    public PortableAppView(SettingsView settingsView, ILogger<PortableAppView> logger)
+    public PortableAppView(
+        SettingsView settingsView,
+        ILogger<PortableAppView> logger,
+        CrashReportService crashReportService)
     {
         _settingsView = settingsView;
         _logger = logger;
+        _crashReportService = crashReportService;
         InitializeComponent();
         ViewHost.Content = settingsView;
         Loaded += OnLoaded;
@@ -35,6 +41,10 @@ public partial class PortableAppView : UserControl
 
         _initialized = true;
         await _settingsView.EnsureInitializedAsync();
+        if (_crashReportService.CurrentReport is not null)
+        {
+            await _settingsView.NavigateAsync(PortableCrashSettingsPage.PageId);
+        }
     }
 
     public async Task<bool> NavigateAsync(string route, Uri? uri)
@@ -64,6 +74,9 @@ public partial class PortableAppView : UserControl
                     break;
                 case "logs":
                     await _settingsView.NavigateAsync(PortableLogsSettingsPage.PageId, uri);
+                    break;
+                case "crash":
+                    await _settingsView.NavigateAsync(PortableCrashSettingsPage.PageId, uri);
                     break;
                 default:
                     return false;

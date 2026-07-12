@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Threading;
 using ClassIsland.Core;
 using ClassIsland.Core.Enums;
 using ClassIsland.Core.Models.Platform;
@@ -63,6 +64,14 @@ public partial class App
         PortableNavigationHandler?.Invoke(route, uri) ?? Task.FromResult(false);
 
     /// <summary>
+    /// 由移动宿主提供的系统链接启动器。
+    /// </summary>
+    public static Func<Uri, Task<bool>>? PortableUriLauncher { get; set; }
+
+    internal static Task<bool> LaunchPortableUriAsync(Uri uri) =>
+        PortableUriLauncher?.Invoke(uri) ?? Task.FromResult(false);
+
+    /// <summary>
     /// 由 iOS 宿主提供的单视图根控件工厂。
     /// </summary>
     public static Func<Control>? PortableMainViewFactory { get; set; }
@@ -110,6 +119,11 @@ public partial class App
         {
             return false;
         }
+
+        Dispatcher.UIThread.UnhandledException -= App_OnDispatcherUnhandledException;
+        Dispatcher.UIThread.UnhandledException += App_OnDispatcherUnhandledException;
+        TaskScheduler.UnobservedTaskException -= TaskSchedulerOnUnobservedTaskException;
+        TaskScheduler.UnobservedTaskException += TaskSchedulerOnUnobservedTaskException;
 
         InitializePortableHost();
         var mainView = PortableMainViewFactory();

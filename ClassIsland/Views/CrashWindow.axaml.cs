@@ -24,9 +24,32 @@ public partial class CrashWindow : MyWindow
         set => SetValue(CrashInfoProperty, value);
     }
 
-    public bool IsCritical { get; set; } = false;
+    public static readonly StyledProperty<bool> IsCriticalProperty = AvaloniaProperty.Register<CrashWindow, bool>(
+        nameof(IsCritical));
 
-    public bool AllowIgnore { get; set; } = true;
+    public bool IsCritical
+    {
+        get => GetValue(IsCriticalProperty);
+        set => SetValue(IsCriticalProperty, value);
+    }
+
+    public static readonly StyledProperty<bool> AllowIgnoreProperty = AvaloniaProperty.Register<CrashWindow, bool>(
+        nameof(AllowIgnore), true);
+
+    public bool AllowIgnore
+    {
+        get => GetValue(AllowIgnoreProperty);
+        set => SetValue(AllowIgnoreProperty, value);
+    }
+
+    public bool IsEmbedded { get; set; }
+
+    public bool CanRestart =>
+        !App.IsPortableModeRequested || App.CurrentPlatformCapabilities.SupportsApplicationRestart;
+
+    public bool CanDebug => !OperatingSystem.IsIOS();
+
+    public event EventHandler? DismissRequested;
 
     public CrashWindow()
     {
@@ -36,6 +59,12 @@ public partial class CrashWindow : MyWindow
 
     private void ButtonIgnore_OnClick(object sender, RoutedEventArgs e)
     {
+        if (IsEmbedded)
+        {
+            DismissRequested?.Invoke(this, EventArgs.Empty);
+            return;
+        }
+
         Close();
     }
 
@@ -53,6 +82,11 @@ public partial class CrashWindow : MyWindow
 
     private void ButtonRestart_OnClick(object sender, RoutedEventArgs e)
     {
+        if (!CanRestart)
+        {
+            return;
+        }
+
         AppBase.Current.Restart();
     }
 
@@ -63,12 +97,27 @@ public partial class CrashWindow : MyWindow
         TextBoxCrashInfo.Copy();
     }
 
-    private void ButtonFeedback_OnClick(object sender, RoutedEventArgs e)
+    private async void ButtonFeedback_OnClick(object sender, RoutedEventArgs e)
     {
         var uri = new UriBuilder(
             $"https://github.com/ClassIsland/ClassIsland/issues/new");
         uri.Query = 
             $"template=BugReport.yml&stacktrace={HttpUtility.UrlEncode(CrashInfo)}&app_version={HttpUtility.UrlEncode(App.AppVersionLong)}&os_version={HttpUtility.UrlEncode(Environment.OSVersion.Version.ToString())}";
+
+        if (App.IsPortableModeRequested)
+        {
+            try
+            {
+                await App.LaunchPortableUriAsync(uri.Uri);
+            }
+            catch
+            {
+                // 崩溃报告界面不能因为系统浏览器不可用而再次崩溃。
+            }
+
+            return;
+        }
+
         Process.Start(new ProcessStartInfo()
         {
             FileName = uri.ToString(),

@@ -128,7 +128,7 @@ internal sealed partial class IosMobilePlatform : IMobilePlatform
                 supportsLiveActivities = NativeLiveActivityIsEnabled() == 1;
                 supportsDynamicIsland = supportsLiveActivities && NativeDynamicIslandIsAvailable() == 1;
             }
-            catch (Exception exception) when (IsNativeBridgeException(exception))
+            catch (Exception)
             {
                 supportsLiveActivities = false;
                 supportsDynamicIsland = false;

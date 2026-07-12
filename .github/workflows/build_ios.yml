@@ -132,6 +132,7 @@ jobs:
           test -n "$app_path"
           test -d "$app_path"
           test -f "$app_path/Info.plist"
+          test -f "$app_path/Assets.car"
           test -d "$app_path/PlugIns/ClassIslandLiveActivity.appex"
           test -f "$app_path/PlugIns/ClassIslandLiveActivity.appex/Info.plist"
 
@@ -139,9 +140,11 @@ jobs:
           /usr/bin/plutil -lint "$app_path/PlugIns/ClassIslandLiveActivity.appex/Info.plist"
           bundle_id="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$app_path/Info.plist")"
           executable="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$app_path/Info.plist")"
+          app_icon_name="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconName' "$app_path/Info.plist")"
           extension_bundle_id="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$app_path/PlugIns/ClassIslandLiveActivity.appex/Info.plist")"
           extension_executable="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$app_path/PlugIns/ClassIslandLiveActivity.appex/Info.plist")"
           test "$bundle_id" = "cn.classisland.mobile.avalonia"
+          test "$app_icon_name" = "AppIcon"
           test "$extension_bundle_id" = "cn.classisland.mobile.avalonia.liveactivity"
           test -f "$app_path/$executable"
           test -f "$app_path/PlugIns/ClassIslandLiveActivity.appex/$extension_executable"
@@ -188,3 +191,149 @@ jobs:
           path: ${{ runner.temp }}/ClassIsland-Avalonia-iOS.binlog
           if-no-files-found: ignore
           retention-days: 7
+
+  simulator-smoke:
+    runs-on: macos-15
+    timeout-minutes: 60
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: ClassIsland.Mobile.Avalonia
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Setup .NET 8 and 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+
+      - name: Add GitHub Package Registry
+        env:
+          GITHUB_PACKAGES_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          dotnet nuget add source \
+            --username ClassIsland \
+            --password "$GITHUB_PACKAGES_TOKEN" \
+            --store-password-in-clear-text \
+            --name github \
+            "https://nuget.pkg.github.com/ClassIsland/index.json"
+
+      - name: Restore iOS workload
+        run: |
+          set -euo pipefail
+          dotnet workload restore "$IOS_PROJECT"
+
+      - name: Restore simulator packages
+        run: |
+          set -euo pipefail
+          dotnet restore "$IOS_PROJECT" \
+            --runtime iossimulator-arm64 \
+            --disable-parallel
+
+      - name: Build simulator app
+        run: |
+          set -euo pipefail
+          dotnet build "$IOS_PROJECT" \
+            --configuration Debug \
+            --framework net8.0-ios \
+            --runtime iossimulator-arm64 \
+            --no-restore \
+            --maxcpucount:1 \
+            -p:EnableCodeSigning=false \
+            -p:CodesignEntitlements= \
+            -p:ValidateXcodeVersion=false \
+            -bl:"$RUNNER_TEMP/ClassIsland-Avalonia-iOS-simulator.binlog"
+
+      - name: Boot iPad Simulator
+        run: |
+          set -euo pipefail
+          simulator_list="$RUNNER_TEMP/available-simulators.json"
+          xcrun simctl list devices available --json > "$simulator_list"
+          simulator_udid="$(jq -r \
+            '[.devices[][] | select(.isAvailable == true and (.name | startswith("iPad")))] | first | .udid // empty' \
+            "$simulator_list")"
+          simulator_name="$(jq -r \
+            --arg udid "$simulator_udid" \
+            '[.devices[][] | select(.udid == $udid)] | first | .name // empty' \
+            "$simulator_list")"
+          test -n "$simulator_udid"
+          echo "Using $simulator_name ($simulator_udid)"
+          echo "SIMULATOR_UDID=$simulator_udid" >> "$GITHUB_ENV"
+          echo "SIMULATOR_NAME=$simulator_name" >> "$GITHUB_ENV"
+          xcrun simctl boot "$simulator_udid" || true
+          xcrun simctl bootstatus "$simulator_udid" -b
+
+      - name: Install and launch app
+        run: |
+          set -euo pipefail
+          search_root="$GITHUB_WORKSPACE/ClassIsland.Mobile.Avalonia/ClassIsland.Mobile.Avalonia.iOS/bin/Debug/net8.0-ios/iossimulator-arm64"
+          app_path="$(find "$search_root" -type d -name '*.app' -prune -print | sed -n '1p')"
+          test -n "$app_path"
+          test -f "$app_path/Info.plist"
+          test -f "$app_path/Assets.car"
+
+          bundle_id="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$app_path/Info.plist")"
+          executable="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$app_path/Info.plist")"
+          test "$bundle_id" = "cn.classisland.mobile.avalonia"
+          test -f "$app_path/$executable"
+
+          echo "SIMULATOR_APP_PATH=$app_path" >> "$GITHUB_ENV"
+          echo "SIMULATOR_APP_EXECUTABLE=$executable" >> "$GITHUB_ENV"
+          xcrun simctl uninstall "$SIMULATOR_UDID" "$bundle_id" 2>/dev/null || true
+          xcrun simctl install "$SIMULATOR_UDID" "$app_path"
+
+          launch_output="$(xcrun simctl launch "$SIMULATOR_UDID" "$bundle_id")"
+          echo "$launch_output"
+          app_pid="${launch_output##*: }"
+          [[ "$app_pid" =~ ^[0-9]+$ ]]
+          echo "SIMULATOR_APP_PID=$app_pid" >> "$GITHUB_ENV"
+
+          sleep 20
+          /bin/kill -0 "$app_pid"
+          process_command="$(ps -p "$app_pid" -o command=)"
+          test -n "$process_command"
+          echo "App remained alive after 20 seconds: $process_command"
+
+      - name: Collect simulator diagnostics
+        if: always() && env.SIMULATOR_UDID != ''
+        run: |
+          set +e
+          diagnostics="$RUNNER_TEMP/ClassIsland-iPad-Simulator"
+          mkdir -p "$diagnostics"
+          xcrun simctl io "$SIMULATOR_UDID" screenshot "$diagnostics/screenshot.png"
+          xcrun simctl list devices > "$diagnostics/devices.txt"
+          if [[ -n "${SIMULATOR_APP_EXECUTABLE:-}" ]]; then
+            xcrun simctl spawn "$SIMULATOR_UDID" log show \
+              --style compact \
+              --last 10m \
+              --predicate "process == '$SIMULATOR_APP_EXECUTABLE'" \
+              > "$diagnostics/app.log" 2>&1
+          fi
+          if [[ -n "${SIMULATOR_APP_PID:-}" ]]; then
+            ps -p "$SIMULATOR_APP_PID" -o pid,ppid,state,etime,command \
+              > "$diagnostics/process.txt" 2>&1
+          fi
+
+      - name: Upload simulator diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ClassIsland-Avalonia-iPad-Simulator-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/ClassIsland-iPad-Simulator
+            ${{ runner.temp }}/ClassIsland-Avalonia-iOS-simulator.binlog
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Shutdown iPad Simulator
+        if: always() && env.SIMULATOR_UDID != ''
+        run: xcrun simctl shutdown "$SIMULATOR_UDID" || true

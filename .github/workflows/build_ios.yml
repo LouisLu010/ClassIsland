@@ -250,6 +250,8 @@ jobs:
             --maxcpucount:1 \
             -p:EnableCodeSigning=false \
             -p:CodesignEntitlements= \
+            -p:MtouchInterpreter=all \
+            -p:_IsDedupEnabled=false \
             -p:ValidateXcodeVersion=false \
             -bl:"$RUNNER_TEMP/ClassIsland-Avalonia-iOS-simulator.binlog"
 

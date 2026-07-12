@@ -145,16 +145,16 @@ jobs:
       - name: Publish unsigned device app
         run: |
           set -euo pipefail
-          aot_properties=()
+          aot_properties=("-p:ClassIslandDeviceAotMode=$DEVICE_AOT_MODE")
           case "$DEVICE_AOT_MODE" in
             hybrid)
-              aot_properties+=("-p:MtouchInterpreter=-all,ClassIsland.Core")
               ;;
             full)
               aot_properties+=(
                 "-p:MtouchInterpreter=-all"
                 "-p:MtouchUseLlvm=false"
                 "-p:_IsDedupEnabled=false"
+                "-p:AotCompileMaxDegreeOfParallelism=1"
               )
               ;;
             interpreter)

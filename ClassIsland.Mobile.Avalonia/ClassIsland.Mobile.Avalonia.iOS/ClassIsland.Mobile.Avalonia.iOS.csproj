@@ -10,8 +10,8 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
-    <!-- .NET 8 Mono AOT 在完整桌面程序集启用 LLVM 时可能以退出码 139 崩溃。 -->
-    <MtouchUseLlvm>false</MtouchUseLlvm>
+    <!-- 仅解释执行触发 .NET 8 Mono AOT 退出码 139 的程序集，其余程序集继续使用 AOT。 -->
+    <MtouchInterpreter>-all,ClassIsland.Core</MtouchInterpreter>
   </PropertyGroup>
 
   <ItemGroup>

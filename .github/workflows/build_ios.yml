@@ -148,6 +148,7 @@ jobs:
           aot_properties=()
           case "$DEVICE_AOT_MODE" in
             hybrid)
+              aot_properties+=("-p:MtouchInterpreter=-all,ClassIsland.Core")
               ;;
             full)
               aot_properties+=(

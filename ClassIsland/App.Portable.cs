@@ -85,6 +85,10 @@ public partial class App
         PortableMainViewFactory is not null &&
         (ForcePortableDesktopHost || System.OperatingSystem.IsIOS());
 
+    internal static bool IsIosSimulator =>
+        System.OperatingSystem.IsIOS() &&
+        !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("SIMULATOR_UDID"));
+
     private void InitializePortableDirectories()
     {
         Program.InitializeSharedRuntime();

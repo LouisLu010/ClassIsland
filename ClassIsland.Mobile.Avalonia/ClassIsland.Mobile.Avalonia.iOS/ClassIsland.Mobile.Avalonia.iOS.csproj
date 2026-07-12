@@ -34,5 +34,16 @@
                 Link="Assets.xcassets\AppIcon.appiconset\ClassIsland-1024.png" />
   </ItemGroup>
 
+  <Target Name="RemoveUnsupportedSoundFlowSimulatorFramework"
+          AfterTargets="_ComputePublishLocation"
+          BeforeTargets="_LinkNativeExecutable"
+          Condition="$([System.String]::Copy('$(RuntimeIdentifier)').StartsWith('iossimulator-'))">
+    <ItemGroup>
+      <_FrameworkNativeReference
+          Remove="@(_FrameworkNativeReference)"
+          Condition="$([System.String]::Copy('%(_FrameworkNativeReference.Identity)').Contains('miniaudio.framework'))" />
+    </ItemGroup>
+  </Target>
+
   <Import Project="CompileLiveActivitySwift.targets" />
 </Project>

@@ -98,7 +98,14 @@ public partial class App
         services.AddSingleton<IAnnouncementService, AnnouncementService>();
         services.AddSingleton<ILocationService>(PlatformServices.LocationService);
         services.AddSingleton<IXamlThemeService, XamlThemeService>();
-        services.AddSingleton<IAudioService, AudioService>();
+        if (IsIosSimulator)
+        {
+            services.AddSingleton<IAudioService, UnavailableAudioService>();
+        }
+        else
+        {
+            services.AddSingleton<IAudioService, AudioService>();
+        }
         services.AddSingleton<ITutorialService, TutorialService>();
         services.AddSingleton<IRefreshingService, RefreshingService>();
         // ViewModels

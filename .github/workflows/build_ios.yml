@@ -31,8 +31,7 @@ on:
         type: string
   push:
     paths:
-      - "ClassIsland.Mobile.Avalonia/**"
-      - "ClassIsland.Mobile/**"
+      - "ClassIsland.iOS/**"
       - "ClassIsland/**"
       - "ClassIsland.Core/**"
       - "ClassIsland.Platforms.Abstractions/**"
@@ -48,8 +47,7 @@ on:
       - ".github/workflows/build_ios.yml"
   pull_request:
     paths:
-      - "ClassIsland.Mobile.Avalonia/**"
-      - "ClassIsland.Mobile/**"
+      - "ClassIsland.iOS/**"
       - "ClassIsland/**"
       - "ClassIsland.Core/**"
       - "ClassIsland.Platforms.Abstractions/**"
@@ -89,7 +87,7 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: ClassIsland.Mobile.Avalonia
+        working-directory: ClassIsland.iOS
 
     steps:
       - name: Checkout
@@ -187,7 +185,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          search_root="$GITHUB_WORKSPACE/ClassIsland.Mobile.Avalonia/ClassIsland.Mobile.Avalonia.iOS/bin/Release/net8.0-ios/ios-arm64"
+          search_root="$GITHUB_WORKSPACE/ClassIsland.iOS/ClassIsland.Mobile.Avalonia.iOS/bin/Release/net8.0-ios/ios-arm64"
           app_path="$(find "$search_root" -type d -name '*.app' -prune -print | sed -n '1p')"
           test -n "$app_path"
           test -d "$app_path"
@@ -255,7 +253,7 @@ jobs:
         run: |
           set +e
           diagnostics="$RUNNER_TEMP/ClassIsland-Avalonia-iOS-diagnostics"
-          search_root="$GITHUB_WORKSPACE/ClassIsland.Mobile.Avalonia/ClassIsland.Mobile.Avalonia.iOS/bin/Release/net8.0-ios/ios-arm64"
+          search_root="$GITHUB_WORKSPACE/ClassIsland.iOS/ClassIsland.Mobile.Avalonia.iOS/bin/Release/net8.0-ios/ios-arm64"
           mkdir -p "$diagnostics"
 
           if [[ -f "$RUNNER_TEMP/ClassIsland-Avalonia-iOS.binlog" ]]; then
@@ -315,7 +313,7 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: ClassIsland.Mobile.Avalonia
+        working-directory: ClassIsland.iOS
 
     steps:
       - name: Checkout
@@ -394,7 +392,7 @@ jobs:
       - name: Install and launch app
         run: |
           set -euo pipefail
-          search_root="$GITHUB_WORKSPACE/ClassIsland.Mobile.Avalonia/ClassIsland.Mobile.Avalonia.iOS/bin/Debug/net8.0-ios/iossimulator-arm64"
+          search_root="$GITHUB_WORKSPACE/ClassIsland.iOS/ClassIsland.Mobile.Avalonia.iOS/bin/Debug/net8.0-ios/iossimulator-arm64"
           app_path="$(find "$search_root" -type d -name '*.app' -prune -print | sed -n '1p')"
           test -n "$app_path"
           test -f "$app_path/Info.plist"

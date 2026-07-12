@@ -1,0 +1,263 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A00000000000000000000220 /* ScheduleActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000113 /* ScheduleActivityAttributes.swift */; };
+		A00000000000000000000221 /* SchedulePhase.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000114 /* SchedulePhase.swift */; };
+		A00000000000000000000222 /* ClassIslandLiveActivityBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000115 /* ClassIslandLiveActivityBundle.swift */; };
+		A00000000000000000000223 /* ClassIslandLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000116 /* ClassIslandLiveActivity.swift */; };
+		A00000000000000000000224 /* LiveActivityLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000129 /* LiveActivityLayout.swift */; };
+		A00000000000000000000229 /* WeatherPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000134 /* WeatherPresentation.swift */; };
+		A00000000000000000000262 /* PluginActivityPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000143 /* PluginActivityPresentation.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		A00000000000000000000091 /* ClassIslandLiveActivity.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ClassIslandLiveActivity.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		A00000000000000000000113 /* ScheduleActivityAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleActivityAttributes.swift; sourceTree = "<group>"; };
+		A00000000000000000000114 /* SchedulePhase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SchedulePhase.swift; sourceTree = "<group>"; };
+		A00000000000000000000115 /* ClassIslandLiveActivityBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassIslandLiveActivityBundle.swift; sourceTree = "<group>"; };
+		A00000000000000000000116 /* ClassIslandLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassIslandLiveActivity.swift; sourceTree = "<group>"; };
+		A00000000000000000000123 /* LiveActivity-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "LiveActivity-Info.plist"; sourceTree = "<group>"; };
+		A00000000000000000000129 /* LiveActivityLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityLayout.swift; sourceTree = "<group>"; };
+		A00000000000000000000134 /* WeatherPresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherPresentation.swift; sourceTree = "<group>"; };
+		A00000000000000000000143 /* PluginActivityPresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginActivityPresentation.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A00000000000000000000312 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = ();
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		A00000000000000000000002 = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000014 /* Shared */,
+				A00000000000000000000015 /* LiveActivity */,
+				A00000000000000000000017 /* Supporting */,
+				A00000000000000000000003 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A00000000000000000000003 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000091 /* ClassIslandLiveActivity.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A00000000000000000000014 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000113 /* ScheduleActivityAttributes.swift */,
+				A00000000000000000000114 /* SchedulePhase.swift */,
+				A00000000000000000000129 /* LiveActivityLayout.swift */,
+				A00000000000000000000134 /* WeatherPresentation.swift */,
+				A00000000000000000000143 /* PluginActivityPresentation.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		A00000000000000000000015 /* LiveActivity */ = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000115 /* ClassIslandLiveActivityBundle.swift */,
+				A00000000000000000000116 /* ClassIslandLiveActivity.swift */,
+			);
+			path = LiveActivity;
+			sourceTree = "<group>";
+		};
+		A00000000000000000000017 /* Supporting */ = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000123 /* LiveActivity-Info.plist */,
+			);
+			path = Supporting;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A00000000000000000000402 /* ClassIslandLiveActivity */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A00000000000000000000621;
+			buildPhases = (
+				A00000000000000000000311 /* Sources */,
+				A00000000000000000000312 /* Frameworks */,
+				A00000000000000000000313 /* Resources */,
+			);
+			buildRules = ();
+			dependencies = ();
+			name = ClassIslandLiveActivity;
+			productName = ClassIslandLiveActivity;
+			productReference = A00000000000000000000091 /* ClassIslandLiveActivity.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A00000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					A00000000000000000000402 = {
+						CreatedOnToolsVersion = 16.0;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = A00000000000000000000601;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = zh_CN;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+				zh_CN,
+			);
+			mainGroup = A00000000000000000000002;
+			productRefGroup = A00000000000000000000003 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A00000000000000000000402 /* ClassIslandLiveActivity */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A00000000000000000000313 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = ();
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A00000000000000000000311 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A00000000000000000000220 /* ScheduleActivityAttributes.swift in Sources */,
+				A00000000000000000000221 /* SchedulePhase.swift in Sources */,
+				A00000000000000000000222 /* ClassIslandLiveActivityBundle.swift in Sources */,
+				A00000000000000000000223 /* ClassIslandLiveActivity.swift in Sources */,
+				A00000000000000000000224 /* LiveActivityLayout.swift in Sources */,
+				A00000000000000000000229 /* WeatherPresentation.swift in Sources */,
+				A00000000000000000000262 /* PluginActivityPresentation.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		A00000000000000000000501 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.10;
+			};
+			name = Debug;
+		};
+		A00000000000000000000502 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.10;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		A00000000000000000000521 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "Supporting/LiveActivity-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../../Frameworks";
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = cn.classisland.mobile.avalonia.liveactivity;
+				PRODUCT_NAME = ClassIslandLiveActivity;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		A00000000000000000000522 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "Supporting/LiveActivity-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../../Frameworks";
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = cn.classisland.mobile.avalonia.liveactivity;
+				PRODUCT_NAME = ClassIslandLiveActivity;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A00000000000000000000601 = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A00000000000000000000501 /* Debug */,
+				A00000000000000000000502 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A00000000000000000000621 = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A00000000000000000000521 /* Debug */,
+				A00000000000000000000522 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A00000000000000000000001 /* Project object */;
+}

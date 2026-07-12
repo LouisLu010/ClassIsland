@@ -27,11 +27,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ImageAsset Include="..\..\ClassIsland.Mobile\Resources\Assets.xcassets\Contents.json"
+    <ImageAsset Include="..\Resources\Assets.xcassets\Contents.json"
                 Link="Assets.xcassets\Contents.json" />
-    <ImageAsset Include="..\..\ClassIsland.Mobile\Resources\Assets.xcassets\AppIcon.appiconset\Contents.json"
+    <ImageAsset Include="..\Resources\Assets.xcassets\AppIcon.appiconset\Contents.json"
                 Link="Assets.xcassets\AppIcon.appiconset\Contents.json" />
-    <ImageAsset Include="..\..\ClassIsland.Mobile\Resources\Assets.xcassets\AppIcon.appiconset\ClassIsland-1024.png"
+    <ImageAsset Include="..\Resources\Assets.xcassets\AppIcon.appiconset\ClassIsland-1024.png"
                 Link="Assets.xcassets\AppIcon.appiconset\ClassIsland-1024.png" />
   </ItemGroup>
 

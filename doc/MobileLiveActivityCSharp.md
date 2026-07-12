@@ -204,10 +204,10 @@ Avalonia iOS 宿主会自动创建 `AvaloniaLiveActivityCoordinator`。它读取
 
 ## 实现位置
 
-- C# API：`ClassIsland.Mobile.Avalonia/ClassIsland.Mobile.Avalonia/Services/`
-- iOS 平台调用：`ClassIsland.Mobile.Avalonia/ClassIsland.Mobile.Avalonia.iOS/IosMobilePlatform.cs`
-- C# 自动同步：`ClassIsland.Mobile.Avalonia/ClassIsland.Mobile.Avalonia.iOS/AvaloniaLiveActivityCoordinator.cs`
-- Swift C ABI 桥：`ClassIsland.Mobile.Avalonia/Native/AvaloniaLiveActivityBridge.swift`
-- Widget Extension：`ClassIsland.Mobile/LiveActivity/`
+- C# API：`ClassIsland.iOS/ClassIsland.Mobile.Avalonia/Services/`
+- iOS 平台调用：`ClassIsland.iOS/ClassIsland.Mobile.Avalonia.iOS/IosMobilePlatform.cs`
+- C# 自动同步：`ClassIsland.iOS/ClassIsland.Mobile.Avalonia.iOS/AvaloniaLiveActivityCoordinator.cs`
+- Swift C ABI 桥：`ClassIsland.iOS/Native/AvaloniaLiveActivityBridge.swift`
+- Widget Extension：`ClassIsland.iOS/Native/LiveActivity/`
 
 Swift 层属于平台基础设施。扩展普通 C# 业务时，应优先增加 `LiveActivityState` 字段或组件类型，再由平台维护者统一更新桥接协议。

@@ -6,19 +6,19 @@
     <LiveActivityExtensionConfiguration Condition="$([System.String]::Copy('$(Configuration)').StartsWith('Debug'))">Debug</LiveActivityExtensionConfiguration>
     <LiveActivityNativeRoot>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)', '..', 'Native'))</LiveActivityNativeRoot>
     <LiveActivityExtensionOutput>$([MSBuild]::NormalizeDirectory('$(LiveActivityNativeRoot)', 'build', '$(LiveActivityNativePlatform)'))</LiveActivityExtensionOutput>
-    <LiveActivityXcodeProject>$([MSBuild]::NormalizePath('$(MSBuildThisFileDirectory)', '..', '..', 'ClassIsland.Mobile', 'ClassIsland.Mobile.xcodeproj'))</LiveActivityXcodeProject>
+    <LiveActivityXcodeProject>$([MSBuild]::NormalizePath('$(LiveActivityNativeRoot)', 'ClassIslandLiveActivity.xcodeproj'))</LiveActivityXcodeProject>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(LiveActivityNativePlatform)' != ''">
-    <CompileLiveActivitySwift Include="$([MSBuild]::NormalizePath('$(MSBuildThisFileDirectory)', '..', '..', 'ClassIsland.Mobile', 'Shared', 'SchedulePhase.swift'))" />
-    <CompileLiveActivitySwift Include="$([MSBuild]::NormalizePath('$(MSBuildThisFileDirectory)', '..', '..', 'ClassIsland.Mobile', 'Shared', 'LiveActivityLayout.swift'))" />
-    <CompileLiveActivitySwift Include="$([MSBuild]::NormalizePath('$(MSBuildThisFileDirectory)', '..', '..', 'ClassIsland.Mobile', 'Shared', 'WeatherPresentation.swift'))" />
-    <CompileLiveActivitySwift Include="$([MSBuild]::NormalizePath('$(MSBuildThisFileDirectory)', '..', '..', 'ClassIsland.Mobile', 'Shared', 'PluginActivityPresentation.swift'))" />
-    <CompileLiveActivitySwift Include="$([MSBuild]::NormalizePath('$(MSBuildThisFileDirectory)', '..', '..', 'ClassIsland.Mobile', 'Shared', 'ScheduleActivityAttributes.swift'))" />
+    <CompileLiveActivitySwift Include="$([MSBuild]::NormalizePath('$(LiveActivityNativeRoot)', 'Shared', 'SchedulePhase.swift'))" />
+    <CompileLiveActivitySwift Include="$([MSBuild]::NormalizePath('$(LiveActivityNativeRoot)', 'Shared', 'LiveActivityLayout.swift'))" />
+    <CompileLiveActivitySwift Include="$([MSBuild]::NormalizePath('$(LiveActivityNativeRoot)', 'Shared', 'WeatherPresentation.swift'))" />
+    <CompileLiveActivitySwift Include="$([MSBuild]::NormalizePath('$(LiveActivityNativeRoot)', 'Shared', 'PluginActivityPresentation.swift'))" />
+    <CompileLiveActivitySwift Include="$([MSBuild]::NormalizePath('$(LiveActivityNativeRoot)', 'Shared', 'ScheduleActivityAttributes.swift'))" />
     <CompileLiveActivitySwift Include="$([MSBuild]::NormalizePath('$(LiveActivityNativeRoot)', 'AvaloniaLiveActivityBridge.swift'))" />
-    <LiveActivityExtensionSource Include="$([MSBuild]::NormalizePath('$(MSBuildThisFileDirectory)', '..', '..', 'ClassIsland.Mobile', 'LiveActivity', '*.swift'))" />
-    <LiveActivityExtensionSource Include="$([MSBuild]::NormalizePath('$(MSBuildThisFileDirectory)', '..', '..', 'ClassIsland.Mobile', 'Shared', '*.swift'))" />
-    <LiveActivityExtensionSource Include="$([MSBuild]::NormalizePath('$(MSBuildThisFileDirectory)', '..', '..', 'ClassIsland.Mobile', 'Supporting', 'LiveActivity-Info.plist'))" />
+    <LiveActivityExtensionSource Include="$([MSBuild]::NormalizePath('$(LiveActivityNativeRoot)', 'LiveActivity', '*.swift'))" />
+    <LiveActivityExtensionSource Include="$([MSBuild]::NormalizePath('$(LiveActivityNativeRoot)', 'Shared', '*.swift'))" />
+    <LiveActivityExtensionSource Include="$([MSBuild]::NormalizePath('$(LiveActivityNativeRoot)', 'Supporting', 'LiveActivity-Info.plist'))" />
     <LiveActivityExtensionSource Include="$(LiveActivityXcodeProject)/project.pbxproj" />
 
     <AdditionalAppExtensions Include="$([MSBuild]::NormalizeDirectory('$(LiveActivityNativeRoot)', 'build'))">

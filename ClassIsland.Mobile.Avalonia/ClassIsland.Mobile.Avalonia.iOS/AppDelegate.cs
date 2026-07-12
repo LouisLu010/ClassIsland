@@ -13,12 +13,18 @@ namespace ClassIsland.Mobile.Avalonia.iOS;
 public partial class AppDelegate : AvaloniaAppDelegate<DesktopApp>
 #pragma warning restore CA1711
 {
+    private AvaloniaLiveActivityCoordinator? _liveActivityCoordinator;
+
     protected override AppBuilder CustomizeAppBuilder(AppBuilder builder)
     {
         AppServices.Platform = new IosMobilePlatform();
         ConfigurePortableCapabilities();
-        DesktopApp.PortableMainViewFactory =
-            () => AppHost.GetService<DesktopPortableView>();
+        DesktopApp.PortableMainViewFactory = () =>
+        {
+            _liveActivityCoordinator ??= new AvaloniaLiveActivityCoordinator();
+            _liveActivityCoordinator.Start();
+            return AppHost.GetService<DesktopPortableView>();
+        };
         return base.CustomizeAppBuilder(builder)
             .WithInterFont();
     }

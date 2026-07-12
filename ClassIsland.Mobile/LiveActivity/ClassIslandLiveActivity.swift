@@ -6,44 +6,68 @@ import WidgetKit
 struct ClassIslandLiveActivity: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: ScheduleActivityAttributes.self) { context in
-            ConfigurableLockScreenView(context: context)
-                .activityBackgroundTint(Color(red: 0.035, green: 0.055, blue: 0.07))
-                .activitySystemActionForegroundColor(.white)
+            TimelineView(ActivityBoundaryTimelineSchedule(state: context.state)) { timeline in
+                ConfigurableLockScreenView(context: context)
+                    .environment(\.liveActivityDisplayDate, timeline.date)
+            }
+            .activityBackgroundTint(Color(red: 0.035, green: 0.055, blue: 0.07))
+            .activitySystemActionForegroundColor(.white)
         } dynamicIsland: { context in
             DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
-                    ExpandedRegionView(context: context, region: .expandedLeading)
-                        .dynamicIsland(verticalPlacement: .belowIfTooWide)
+                    TimelineView(ActivityBoundaryTimelineSchedule(state: context.state)) { timeline in
+                        ExpandedRegionView(context: context, region: .expandedLeading)
+                            .environment(\.liveActivityDisplayDate, timeline.date)
+                            .dynamicIsland(verticalPlacement: .belowIfTooWide)
+                    }
                 }
                 .contentMargins(.trailing, 16)
                 .contentMargins(.top, 8)
 
                 DynamicIslandExpandedRegion(.trailing) {
-                    ExpandedRegionView(context: context, region: .expandedTrailing)
-                        .dynamicIsland(verticalPlacement: .belowIfTooWide)
+                    TimelineView(ActivityBoundaryTimelineSchedule(state: context.state)) { timeline in
+                        ExpandedRegionView(context: context, region: .expandedTrailing)
+                            .environment(\.liveActivityDisplayDate, timeline.date)
+                            .dynamicIsland(verticalPlacement: .belowIfTooWide)
+                    }
                 }
                 .contentMargins(.leading, 16)
                 .contentMargins(.top, 8)
 
                 DynamicIslandExpandedRegion(.center) {
-                    ExpandedRegionView(context: context, region: .expandedCenter)
-                        .dynamicIsland(verticalPlacement: .belowIfTooWide)
+                    TimelineView(ActivityBoundaryTimelineSchedule(state: context.state)) { timeline in
+                        ExpandedRegionView(context: context, region: .expandedCenter)
+                            .environment(\.liveActivityDisplayDate, timeline.date)
+                            .dynamicIsland(verticalPlacement: .belowIfTooWide)
+                    }
                 }
                 .contentMargins(.horizontal, 12)
                 .contentMargins(.top, 12)
 
                 DynamicIslandExpandedRegion(.bottom) {
-                    ExpandedRegionView(context: context, region: .expandedBottom)
+                    TimelineView(ActivityBoundaryTimelineSchedule(state: context.state)) { timeline in
+                        ExpandedRegionView(context: context, region: .expandedBottom)
+                            .environment(\.liveActivityDisplayDate, timeline.date)
+                    }
                 }
                 .contentMargins(.horizontal, 12)
                 .contentMargins(.top, 6)
             } compactLeading: {
-                CompactRegionView(context: context, region: .compactLeading)
+                TimelineView(ActivityBoundaryTimelineSchedule(state: context.state)) { timeline in
+                    CompactRegionView(context: context, region: .compactLeading)
+                        .environment(\.liveActivityDisplayDate, timeline.date)
+                }
             } compactTrailing: {
-                CompactRegionView(context: context, region: .compactTrailing)
-                    .frame(minWidth: 36, idealWidth: 40, maxWidth: 46, alignment: .trailing)
+                TimelineView(ActivityBoundaryTimelineSchedule(state: context.state)) { timeline in
+                    CompactRegionView(context: context, region: .compactTrailing)
+                        .environment(\.liveActivityDisplayDate, timeline.date)
+                        .frame(minWidth: 36, idealWidth: 40, maxWidth: 46, alignment: .trailing)
+                }
             } minimal: {
-                MinimalRegionView(context: context)
+                TimelineView(ActivityBoundaryTimelineSchedule(state: context.state)) { timeline in
+                    MinimalRegionView(context: context)
+                        .environment(\.liveActivityDisplayDate, timeline.date)
+                }
             }
             .keylineTint(activityAccentColor(context.state.accentRGBA))
             .widgetURL(URL(string: "classisland://schedule"))
@@ -51,11 +75,43 @@ struct ClassIslandLiveActivity: Widget {
     }
 }
 
+private struct LiveActivityDisplayDateKey: EnvironmentKey {
+    static let defaultValue = Date()
+}
+
+private extension EnvironmentValues {
+    var liveActivityDisplayDate: Date {
+        get { self[LiveActivityDisplayDateKey.self] }
+        set { self[LiveActivityDisplayDateKey.self] = newValue }
+    }
+}
+
+private struct ActivityBoundaryTimelineSchedule: TimelineSchedule {
+    private let transitionDates: [Date]
+
+    init(state: ScheduleActivityAttributes.ContentState) {
+        transitionDates = state.timeline.map(\.startsAt)
+    }
+
+    func entries(from startDate: Date, mode: TimelineScheduleMode) -> [Date] {
+        let futureDates = transitionDates
+            .filter { $0 > startDate }
+            .map { $0.addingTimeInterval(0.05) }
+        return [startDate] + futureDates
+    }
+}
+
 private struct ConfigurableLockScreenView: View {
     let context: ActivityViewContext<ScheduleActivityAttributes>
 
+    @Environment(\.liveActivityDisplayDate) private var displayDate
+
+    private var state: ScheduleActivityAttributes.ContentState {
+        context.state.resolved(at: displayDate)
+    }
+
     private var accentColor: Color {
-        activityAccentColor(context.state.accentRGBA)
+        activityAccentColor(state.accentRGBA)
     }
 
     var body: some View {
@@ -79,7 +135,7 @@ private struct ConfigurableLockScreenView: View {
             .lockPrimary,
             .lockProgress,
             .lockFooter
-        ].filter { !context.state.layout.components(in: $0).isEmpty }
+        ].filter { !state.layout.components(in: $0).isEmpty }
     }
 }
 
@@ -87,8 +143,14 @@ private struct LockScreenLine: View {
     let context: ActivityViewContext<ScheduleActivityAttributes>
     let region: LiveActivityRegion
 
+    @Environment(\.liveActivityDisplayDate) private var displayDate
+
+    private var state: ScheduleActivityAttributes.ContentState {
+        context.state.resolved(at: displayDate)
+    }
+
     private var components: [LiveActivityComponentConfiguration] {
-        context.state.layout.components(in: region)
+        state.layout.components(in: region)
     }
 
     var body: some View {
@@ -117,9 +179,15 @@ private struct ExpandedRegionView: View {
     let context: ActivityViewContext<ScheduleActivityAttributes>
     let region: LiveActivityRegion
 
+    @Environment(\.liveActivityDisplayDate) private var displayDate
+
+    private var state: ScheduleActivityAttributes.ContentState {
+        context.state.resolved(at: displayDate)
+    }
+
     var body: some View {
         VStack(alignment: horizontalAlignment, spacing: 5) {
-            ForEach(context.state.layout.components(in: region)) { component in
+            ForEach(state.layout.components(in: region)) { component in
                 LiveActivityComponentView(
                     component: component,
                     context: context,
@@ -154,8 +222,14 @@ private struct CompactRegionView: View {
     let context: ActivityViewContext<ScheduleActivityAttributes>
     let region: LiveActivityRegion
 
+    @Environment(\.liveActivityDisplayDate) private var displayDate
+
+    private var state: ScheduleActivityAttributes.ContentState {
+        context.state.resolved(at: displayDate)
+    }
+
     private var component: LiveActivityComponentConfiguration? {
-        context.state.layout.components(in: region).first
+        state.layout.components(in: region).first
     }
 
     var body: some View {
@@ -172,8 +246,14 @@ private struct CompactRegionView: View {
 private struct MinimalRegionView: View {
     let context: ActivityViewContext<ScheduleActivityAttributes>
 
+    @Environment(\.liveActivityDisplayDate) private var displayDate
+
+    private var state: ScheduleActivityAttributes.ContentState {
+        context.state.resolved(at: displayDate)
+    }
+
     private var component: LiveActivityComponentConfiguration? {
-        context.state.layout.components(in: .minimal).first
+        state.layout.components(in: .minimal).first
     }
 
     var body: some View {
@@ -199,16 +279,22 @@ private struct LiveActivityComponentView: View {
     let context: ActivityViewContext<ScheduleActivityAttributes>
     let presentation: LiveActivityPresentation
 
+    @Environment(\.liveActivityDisplayDate) private var displayDate
+
+    private var state: ScheduleActivityAttributes.ContentState {
+        context.state.resolved(at: displayDate)
+    }
+
     private var emphasizedColor: Color {
         component.isEmphasized ? accentColor : .primary
     }
 
     private var accentColor: Color {
-        activityAccentColor(context.state.accentRGBA)
+        activityAccentColor(state.accentRGBA)
     }
 
     private var clockOffsetSeconds: TimeInterval {
-        component.clockUsesSystemTime ? 0 : context.state.timeOffsetSeconds
+        component.clockUsesSystemTime ? 0 : state.timeOffsetSeconds
     }
 
     var body: some View {
@@ -230,10 +316,10 @@ private struct LiveActivityComponentView: View {
         switch component.kind {
         case .status:
             Label {
-                Text(context.isStale ? "待同步" : phaseLabel(context.state.phase))
+                Text(context.isStale ? "待同步" : phaseLabel(state.phase))
             } icon: {
                 if component.showsIcon {
-                    Image(systemName: context.isStale ? "arrow.clockwise.circle" : phaseIcon(context.state.phase))
+                    Image(systemName: context.isStale ? "arrow.clockwise.circle" : phaseIcon(state.phase))
                 }
             }
             .font(.caption.weight(.semibold))
@@ -250,12 +336,12 @@ private struct LiveActivityComponentView: View {
                         .font(.caption)
                 }
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(context.isStale ? "等待课程更新" : context.state.headline)
+                    Text(context.isStale ? "等待课程更新" : state.headline)
                         .font(presentation == .lockScreen ? .title2.weight(.bold) : .headline)
                         .lineLimit(1)
                         .minimumScaleFactor(0.72)
-                    if !context.isStale && !context.state.teacher.isEmpty {
-                        Text(context.state.teacher)
+                    if !context.isStale && !state.teacher.isEmpty {
+                        Text(state.teacher)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
@@ -270,7 +356,7 @@ private struct LiveActivityComponentView: View {
                         .font(.caption)
                 }
                 CountdownLabel(
-                    state: context.state,
+                    state: state,
                     compact: false,
                     isStale: context.isStale
                 )
@@ -285,13 +371,13 @@ private struct LiveActivityComponentView: View {
                         .font(.caption2)
                 }
                 ProgressBar(
-                    state: context.state,
+                    state: state,
                     tint: component.isEmphasized ? accentColor : .secondary
                 )
             }
 
         case .nextLesson:
-            if !context.state.nextTitle.isEmpty {
+            if !state.nextTitle.isEmpty {
                 HStack(spacing: 7) {
                     if component.showsIcon {
                         Image(systemName: "arrow.right.circle")
@@ -299,11 +385,11 @@ private struct LiveActivityComponentView: View {
                     }
                     Text("下一节")
                         .foregroundStyle(.secondary)
-                    Text(context.state.nextTitle)
+                    Text(state.nextTitle)
                         .fontWeight(.semibold)
                         .lineLimit(1)
                     Spacer(minLength: 6)
-                    if let date = context.state.nextStart {
+                    if let date = state.nextStart {
                         Text(date, style: .time)
                             .monospacedDigit()
                             .foregroundStyle(.secondary)
@@ -336,12 +422,12 @@ private struct LiveActivityComponentView: View {
         case .date:
             HStack(spacing: 4) {
                 if component.showsIcon { Image(systemName: "calendar") }
-                LiveDateLabel(offsetSeconds: context.state.timeOffsetSeconds)
+                LiveDateLabel(offsetSeconds: state.timeOffsetSeconds)
             }
             .font(.caption)
 
         case .plugin:
-            if let plugin = context.state.plugin {
+            if let plugin = state.plugin {
                 HStack(alignment: .firstTextBaseline, spacing: 5) {
                     if component.showsIcon {
                         Image(systemName: plugin.systemImage)
@@ -379,15 +465,15 @@ private struct LiveActivityComponentView: View {
                 Image(
                     systemName: context.isStale
                         ? "arrow.clockwise.circle"
-                        : phaseIcon(context.state.phase)
+                        : phaseIcon(state.phase)
                 )
             } else {
-                Text(context.isStale ? "待" : shortPhaseLabel(context.state.phase))
+                Text(context.isStale ? "待" : shortPhaseLabel(state.phase))
                     .font(.caption2.weight(.bold))
             }
         case .currentLesson:
             compactLabel(
-                text: context.isStale ? "待" : context.state.compactTitle,
+                text: context.isStale ? "待" : state.compactTitle,
                 systemImage: context.isStale ? "arrow.clockwise.circle" : "book.closed.fill"
             )
         case .countdown:
@@ -396,7 +482,7 @@ private struct LiveActivityComponentView: View {
                     Image(systemName: "timer")
                 }
                 CountdownLabel(
-                    state: context.state,
+                    state: state,
                     compact: true,
                     isStale: context.isStale
                 )
@@ -411,14 +497,14 @@ private struct LiveActivityComponentView: View {
                 Image(systemName: "chart.bar.fill")
             } else {
                 ProgressBar(
-                    state: context.state,
+                    state: state,
                     tint: component.isEmphasized ? accentColor : .secondary
                 )
                 .frame(width: 18)
             }
         case .nextLesson:
             compactLabel(
-                text: String(context.state.nextTitle.prefix(2)),
+                text: String(state.nextTitle.prefix(2)),
                 systemImage: "arrow.right.circle"
             )
         case .profileName:
@@ -446,17 +532,17 @@ private struct LiveActivityComponentView: View {
         case .date:
             HStack(spacing: 3) {
                 if component.showsIcon { Image(systemName: "calendar") }
-                LiveDateLabel(offsetSeconds: context.state.timeOffsetSeconds)
+                LiveDateLabel(offsetSeconds: state.timeOffsetSeconds)
             }
             .font(.caption2)
         case .plugin:
             compactLabel(
                 text: String(
-                    (context.state.plugin?.value.isEmpty == false
-                        ? context.state.plugin?.value ?? ""
-                        : context.state.plugin?.title ?? "插").prefix(2)
+                    (state.plugin?.value.isEmpty == false
+                        ? state.plugin?.value ?? ""
+                        : state.plugin?.title ?? "插").prefix(2)
                 ),
-                systemImage: context.state.plugin?.systemImage ?? "puzzlepiece.extension"
+                systemImage: state.plugin?.systemImage ?? "puzzlepiece.extension"
             )
         case .customText:
             compactLabel(
@@ -474,15 +560,15 @@ private struct LiveActivityComponentView: View {
                 Image(
                     systemName: context.isStale
                         ? "arrow.clockwise.circle"
-                        : phaseIcon(context.state.phase)
+                        : phaseIcon(state.phase)
                 )
             } else {
-                Text(context.isStale ? "待" : shortPhaseLabel(context.state.phase))
+                Text(context.isStale ? "待" : shortPhaseLabel(state.phase))
                     .font(.caption2.weight(.bold))
             }
         case .currentLesson:
             minimalLabel(
-                text: context.isStale ? "待" : String(context.state.compactTitle.prefix(1)),
+                text: context.isStale ? "待" : String(state.compactTitle.prefix(1)),
                 systemImage: context.isStale ? "arrow.clockwise.circle" : "book.closed.fill"
             )
         case .countdown:
@@ -494,7 +580,7 @@ private struct LiveActivityComponentView: View {
             minimalLabel(text: "进", systemImage: "chart.bar.fill")
         case .nextLesson:
             minimalLabel(
-                text: String(context.state.nextTitle.prefix(1)),
+                text: String(state.nextTitle.prefix(1)),
                 systemImage: "arrow.right.circle"
             )
         case .profileName:
@@ -505,7 +591,7 @@ private struct LiveActivityComponentView: View {
         case .weather:
             minimalLabel(
                 text: component.weatherMetric.shortTitle,
-                systemImage: context.state.weather?.symbolName(for: component.weatherMetric)
+                systemImage: state.weather?.symbolName(for: component.weatherMetric)
                     ?? "cloud.slash"
             )
         case .clock:
@@ -515,11 +601,11 @@ private struct LiveActivityComponentView: View {
         case .plugin:
             minimalLabel(
                 text: String(
-                    (context.state.plugin?.value.isEmpty == false
-                        ? context.state.plugin?.value ?? ""
-                        : context.state.plugin?.title ?? "插").prefix(1)
+                    (state.plugin?.value.isEmpty == false
+                        ? state.plugin?.value ?? ""
+                        : state.plugin?.title ?? "插").prefix(1)
                 ),
-                systemImage: context.state.plugin?.systemImage ?? "puzzlepiece.extension"
+                systemImage: state.plugin?.systemImage ?? "puzzlepiece.extension"
             )
         case .customText:
             minimalLabel(
@@ -566,11 +652,11 @@ private struct LiveActivityComponentView: View {
         HStack(spacing: compact ? 3 : 4) {
             if component.showsIcon {
                 Image(
-                    systemName: context.state.weather?.symbolName(for: component.weatherMetric)
+                    systemName: state.weather?.symbolName(for: component.weatherMetric)
                         ?? "cloud.slash"
                 )
             }
-            if let weather = context.state.weather {
+            if let weather = state.weather {
                 Text(
                     compact
                         ? weather.compactValue(for: component.weatherMetric)

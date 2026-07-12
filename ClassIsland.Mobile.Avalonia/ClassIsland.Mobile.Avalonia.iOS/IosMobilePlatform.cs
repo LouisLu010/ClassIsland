@@ -1,24 +1,20 @@
 using ClassIsland.Mobile.Avalonia.Services;
 using Foundation;
+using System.Runtime.InteropServices;
 using UIKit;
 using UniformTypeIdentifiers;
 using UserNotifications;
 
 namespace ClassIsland.Mobile.Avalonia.iOS;
 
-internal sealed class IosMobilePlatform : IMobilePlatform
+internal sealed partial class IosMobilePlatform : IMobilePlatform
 {
+    private const string NativeLibrary = "__Internal";
+
     private UIDocumentPickerViewController? _activePicker;
     private DocumentPickerDelegate? _activePickerDelegate;
 
-    public MobilePlatformCapabilities Capabilities { get; } = new()
-    {
-        SupportsFileImport = true,
-        SupportsFileExport = true,
-        SupportsSystemNotifications = true,
-        SupportsDataTransfer = true,
-        SupportsAppLogs = true
-    };
+    public MobilePlatformCapabilities Capabilities { get; } = CreateCapabilities();
 
     public Task<ImportedFile?> PickProfileAsync(CancellationToken cancellationToken = default)
     {
@@ -86,10 +82,98 @@ internal sealed class IosMobilePlatform : IMobilePlatform
     }
 
     public Task<PlatformOperationResult> UpdateLiveActivityAsync(
-        string stateJson,
-        CancellationToken cancellationToken = default) =>
-        Task.FromResult(
-            PlatformOperationResult.Failure("ActivityKit 原生桥尚未嵌入 Avalonia 宿主。"));
+        LiveActivityState state,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        try
+        {
+            var result = NativeUpdateLiveActivity(LiveActivityJson.Serialize(state));
+            return Task.FromResult(CreateLiveActivityResult(result, "实时活动更新已提交"));
+        }
+        catch (Exception exception) when (IsNativeBridgeException(exception))
+        {
+            return Task.FromResult(
+                PlatformOperationResult.Failure("ActivityKit 原生桥未随应用一起加载。"));
+        }
+    }
+
+    public Task<PlatformOperationResult> EndLiveActivityAsync(
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        try
+        {
+            var result = NativeEndLiveActivity();
+            return Task.FromResult(CreateLiveActivityResult(result, "实时活动结束请求已提交"));
+        }
+        catch (Exception exception) when (IsNativeBridgeException(exception))
+        {
+            return Task.FromResult(
+                PlatformOperationResult.Failure("ActivityKit 原生桥未随应用一起加载。"));
+        }
+    }
+
+    private static MobilePlatformCapabilities CreateCapabilities()
+    {
+        var supportsLiveActivities = false;
+        var supportsDynamicIsland = false;
+
+        if (OperatingSystem.IsIOSVersionAtLeast(16, 1))
+        {
+            try
+            {
+                supportsLiveActivities = NativeLiveActivityIsEnabled() == 1;
+                supportsDynamicIsland = supportsLiveActivities && NativeDynamicIslandIsAvailable() == 1;
+            }
+            catch (Exception exception) when (IsNativeBridgeException(exception))
+            {
+                supportsLiveActivities = false;
+                supportsDynamicIsland = false;
+            }
+        }
+
+        return new MobilePlatformCapabilities
+        {
+            SupportsFileImport = true,
+            SupportsFileExport = true,
+            SupportsSystemNotifications = true,
+            SupportsLiveActivities = supportsLiveActivities,
+            SupportsDynamicIsland = supportsDynamicIsland,
+            SupportsDataTransfer = true,
+            SupportsAppLogs = true
+        };
+    }
+
+    private static PlatformOperationResult CreateLiveActivityResult(int result, string successMessage) =>
+        result switch
+        {
+            0 => PlatformOperationResult.Success(successMessage),
+            1 => PlatformOperationResult.Failure("当前系统版本不支持实时活动。"),
+            2 => PlatformOperationResult.Failure("系统已关闭实时活动权限。"),
+            3 => PlatformOperationResult.Failure("实时活动数据无效。"),
+            _ => PlatformOperationResult.Failure("ActivityKit 未能处理实时活动请求。")
+        };
+
+    private static bool IsNativeBridgeException(Exception exception) =>
+        exception is DllNotFoundException or EntryPointNotFoundException or TypeInitializationException;
+
+    [LibraryImport(NativeLibrary, EntryPoint = "ClassIslandLiveActivityIsEnabled")]
+    private static partial int NativeLiveActivityIsEnabled();
+
+    [LibraryImport(NativeLibrary, EntryPoint = "ClassIslandDynamicIslandIsAvailable")]
+    private static partial int NativeDynamicIslandIsAvailable();
+
+    [LibraryImport(
+        NativeLibrary,
+        EntryPoint = "ClassIslandLiveActivityUpdate",
+        StringMarshalling = StringMarshalling.Utf8)]
+    private static partial int NativeUpdateLiveActivity(string stateJson);
+
+    [LibraryImport(NativeLibrary, EntryPoint = "ClassIslandLiveActivityEnd")]
+    private static partial int NativeEndLiveActivity();
 
     private static UIViewController? FindTopViewController()
     {

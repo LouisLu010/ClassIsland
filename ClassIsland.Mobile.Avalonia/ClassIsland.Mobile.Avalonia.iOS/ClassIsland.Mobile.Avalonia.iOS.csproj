@@ -5,6 +5,7 @@
     <SupportedOSPlatformVersion>17.0</SupportedOSPlatformVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <CodesignEntitlements>Entitlements.plist</CodesignEntitlements>
   </PropertyGroup>
 
@@ -18,4 +19,6 @@
     <ProjectReference Include="..\..\ClassIsland\ClassIsland.csproj"
                       AdditionalProperties="PortableBuilding=true" />
   </ItemGroup>
+
+  <Import Project="CompileLiveActivitySwift.targets" />
 </Project>

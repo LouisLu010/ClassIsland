@@ -1,6 +1,32 @@
 import ActivityKit
 import Foundation
 
+struct ScheduleActivityTimelineEntry: Codable, Hashable, Sendable {
+    let startsAt: Date
+    let endsAt: Date?
+    let phase: SchedulePhase
+    let headline: String
+    let compactTitle: String
+    let teacher: String
+    let timerStart: Date?
+    let timerEnd: Date?
+    let nextTitle: String
+    let nextStart: Date?
+
+    private enum CodingKeys: String, CodingKey {
+        case startsAt = "s"
+        case endsAt = "e"
+        case phase = "p"
+        case headline = "h"
+        case compactTitle = "c"
+        case teacher = "t"
+        case timerStart = "ts"
+        case timerEnd = "te"
+        case nextTitle = "n"
+        case nextStart = "ns"
+    }
+}
+
 struct ScheduleActivityAttributes: ActivityAttributes {
     struct ContentState: Codable, Hashable {
         let phase: SchedulePhase
@@ -17,6 +43,7 @@ struct ScheduleActivityAttributes: ActivityAttributes {
         let layout: LiveActivityLayout
         let weather: WeatherPresentation?
         let plugin: PluginActivityPresentation?
+        let timeline: [ScheduleActivityTimelineEntry]
 
         private enum CodingKeys: String, CodingKey {
             case phase
@@ -33,6 +60,7 @@ struct ScheduleActivityAttributes: ActivityAttributes {
             case layout
             case weather
             case plugin
+            case timeline = "tl"
         }
 
         init(
@@ -49,7 +77,8 @@ struct ScheduleActivityAttributes: ActivityAttributes {
             accentRGBA: UInt32,
             layout: LiveActivityLayout,
             weather: WeatherPresentation? = nil,
-            plugin: PluginActivityPresentation? = nil
+            plugin: PluginActivityPresentation? = nil,
+            timeline: [ScheduleActivityTimelineEntry] = []
         ) {
             self.phase = phase
             self.headline = headline
@@ -65,6 +94,7 @@ struct ScheduleActivityAttributes: ActivityAttributes {
             self.layout = layout
             self.weather = weather
             self.plugin = plugin
+            self.timeline = timeline
         }
 
         init(from decoder: Decoder) throws {
@@ -86,6 +116,54 @@ struct ScheduleActivityAttributes: ActivityAttributes {
             layout = try container.decodeIfPresent(LiveActivityLayout.self, forKey: .layout) ?? .default
             weather = try container.decodeIfPresent(WeatherPresentation.self, forKey: .weather)
             plugin = try container.decodeIfPresent(PluginActivityPresentation.self, forKey: .plugin)
+            timeline = try container.decodeIfPresent(
+                [ScheduleActivityTimelineEntry].self,
+                forKey: .timeline
+            ) ?? []
+        }
+
+        func resolved(at date: Date) -> ContentState {
+            guard let entry = timeline.last(where: { $0.startsAt <= date }) else {
+                return self
+            }
+
+            return ContentState(
+                phase: entry.phase,
+                headline: entry.headline,
+                compactTitle: entry.compactTitle,
+                teacher: entry.teacher,
+                timerStart: entry.timerStart,
+                timerEnd: entry.timerEnd,
+                nextTitle: entry.nextTitle,
+                nextStart: entry.nextStart,
+                updatedAt: updatedAt,
+                timeOffsetSeconds: timeOffsetSeconds,
+                accentRGBA: accentRGBA,
+                layout: layout,
+                weather: weather,
+                plugin: plugin,
+                timeline: timeline
+            )
+        }
+
+        func replacingTimeline(_ value: [ScheduleActivityTimelineEntry]) -> ContentState {
+            ContentState(
+                phase: phase,
+                headline: headline,
+                compactTitle: compactTitle,
+                teacher: teacher,
+                timerStart: timerStart,
+                timerEnd: timerEnd,
+                nextTitle: nextTitle,
+                nextStart: nextStart,
+                updatedAt: updatedAt,
+                timeOffsetSeconds: timeOffsetSeconds,
+                accentRGBA: accentRGBA,
+                layout: layout,
+                weather: weather,
+                plugin: plugin,
+                timeline: value
+            )
         }
     }
 

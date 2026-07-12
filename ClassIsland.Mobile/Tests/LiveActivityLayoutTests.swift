@@ -218,6 +218,45 @@ final class LiveActivityLayoutTests: XCTestCase {
         XCTAssertFalse(payloadLayout.components(in: .lockHeader).isEmpty)
     }
 
+    func testTimelineResolvesAtCourseBoundary() {
+        let boundary = Date(timeIntervalSince1970: 1_700_000_000)
+        let state = ScheduleActivityAttributes.ContentState(
+            phase: .inClass,
+            headline: "数学",
+            compactTitle: "数",
+            teacher: "",
+            timerStart: boundary.addingTimeInterval(-2_400),
+            timerEnd: boundary,
+            nextTitle: "英语",
+            nextStart: boundary.addingTimeInterval(600),
+            updatedAt: boundary.addingTimeInterval(-2_400),
+            timeOffsetSeconds: 0,
+            accentRGBA: 0x05ABE8FF,
+            layout: .default,
+            timeline: [
+                ScheduleActivityTimelineEntry(
+                    startsAt: boundary,
+                    endsAt: boundary.addingTimeInterval(600),
+                    phase: .breakTime,
+                    headline: "课间休息",
+                    compactTitle: "休",
+                    teacher: "",
+                    timerStart: boundary,
+                    timerEnd: boundary.addingTimeInterval(600),
+                    nextTitle: "英语",
+                    nextStart: boundary.addingTimeInterval(600)
+                )
+            ]
+        )
+
+        XCTAssertEqual(
+            state.resolved(at: boundary.addingTimeInterval(-1)).phase,
+            .inClass
+        )
+        XCTAssertEqual(state.resolved(at: boundary).phase, .breakTime)
+        XCTAssertEqual(state.resolved(at: boundary).headline, "课间休息")
+    }
+
     func testLegacyActivityStateReceivesDefaultLayout() throws {
         let json = """
         {
@@ -242,6 +281,7 @@ final class LiveActivityLayoutTests: XCTestCase {
         XCTAssertEqual(state.timeOffsetSeconds, 0)
         XCTAssertNil(state.weather)
         XCTAssertNil(state.plugin)
+        XCTAssertTrue(state.timeline.isEmpty)
     }
 
     private var weatherPresentation: WeatherPresentation {

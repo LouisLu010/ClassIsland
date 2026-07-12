@@ -38,7 +38,10 @@ public interface IMobilePlatform
         CancellationToken cancellationToken = default);
 
     Task<PlatformOperationResult> UpdateLiveActivityAsync(
-        string stateJson,
+        LiveActivityState state,
+        CancellationToken cancellationToken = default);
+
+    Task<PlatformOperationResult> EndLiveActivityAsync(
         CancellationToken cancellationToken = default);
 }
 
@@ -54,7 +57,11 @@ internal sealed class UnsupportedMobilePlatform : IMobilePlatform
         Task.FromResult(PlatformOperationResult.Failure("当前平台不支持系统通知。"));
 
     public Task<PlatformOperationResult> UpdateLiveActivityAsync(
-        string stateJson,
+        LiveActivityState state,
+        CancellationToken cancellationToken = default) =>
+        Task.FromResult(PlatformOperationResult.Failure("当前平台尚未接入实时活动桥。"));
+
+    public Task<PlatformOperationResult> EndLiveActivityAsync(
         CancellationToken cancellationToken = default) =>
         Task.FromResult(PlatformOperationResult.Failure("当前平台尚未接入实时活动桥。"));
 }

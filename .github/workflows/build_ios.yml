@@ -5,6 +5,7 @@ on:
   push:
     paths:
       - "ClassIsland.Mobile.Avalonia/**"
+      - "ClassIsland.Mobile/**"
       - "ClassIsland/**"
       - "ClassIsland.Core/**"
       - "ClassIsland.Platforms.Abstractions/**"
@@ -21,6 +22,7 @@ on:
   pull_request:
     paths:
       - "ClassIsland.Mobile.Avalonia/**"
+      - "ClassIsland.Mobile/**"
       - "ClassIsland/**"
       - "ClassIsland.Core/**"
       - "ClassIsland.Platforms.Abstractions/**"
@@ -129,13 +131,21 @@ jobs:
           test -n "$app_path"
           test -d "$app_path"
           test -f "$app_path/Info.plist"
+          test -d "$app_path/PlugIns/ClassIslandLiveActivity.appex"
+          test -f "$app_path/PlugIns/ClassIslandLiveActivity.appex/Info.plist"
 
           /usr/bin/plutil -lint "$app_path/Info.plist"
+          /usr/bin/plutil -lint "$app_path/PlugIns/ClassIslandLiveActivity.appex/Info.plist"
           bundle_id="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$app_path/Info.plist")"
           executable="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$app_path/Info.plist")"
+          extension_bundle_id="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$app_path/PlugIns/ClassIslandLiveActivity.appex/Info.plist")"
+          extension_executable="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$app_path/PlugIns/ClassIslandLiveActivity.appex/Info.plist")"
           test "$bundle_id" = "cn.classisland.mobile.avalonia"
+          test "$extension_bundle_id" = "cn.classisland.mobile.avalonia.liveactivity"
           test -f "$app_path/$executable"
+          test -f "$app_path/PlugIns/ClassIslandLiveActivity.appex/$extension_executable"
           /usr/bin/file "$app_path/$executable" | grep -q 'arm64'
+          /usr/bin/file "$app_path/PlugIns/ClassIslandLiveActivity.appex/$extension_executable" | grep -q 'arm64'
 
           package_dir="$RUNNER_TEMP/ClassIsland-Avalonia-ipa"
           output_dir="$GITHUB_WORKSPACE/artifacts"
@@ -152,6 +162,7 @@ jobs:
           archive_listing="$RUNNER_TEMP/ClassIsland-Avalonia-ipa-files.txt"
           /usr/bin/unzip -Z1 "$output_dir/$IPA_NAME" > "$archive_listing"
           grep -Eq '^Payload/[^/]+\.app/Info\.plist$' "$archive_listing"
+          grep -Eq '^Payload/[^/]+\.app/PlugIns/ClassIslandLiveActivity\.appex/Info\.plist$' "$archive_listing"
 
           (
             cd "$output_dir"

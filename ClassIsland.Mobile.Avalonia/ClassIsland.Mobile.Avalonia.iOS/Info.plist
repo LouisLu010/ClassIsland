@@ -34,6 +34,10 @@
   <true/>
   <key>MinimumOSVersion</key>
   <string>17.0</string>
+  <key>NSSupportsLiveActivities</key>
+  <true/>
+  <key>NSSupportsLiveActivitiesFrequentUpdates</key>
+  <true/>
   <key>UIDeviceFamily</key>
   <array>
     <integer>1</integer>
@@ -41,8 +45,6 @@
   </array>
   <key>UIFileSharingEnabled</key>
   <true/>
-  <key>UILaunchStoryboardName</key>
-  <string>LaunchScreen</string>
   <key>UISupportedInterfaceOrientations</key>
   <array>
     <string>UIInterfaceOrientationPortrait</string>

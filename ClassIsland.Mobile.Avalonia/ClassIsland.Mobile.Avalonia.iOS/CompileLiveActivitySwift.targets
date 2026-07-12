@@ -1,0 +1,78 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <LiveActivityNativePlatform Condition="'$(RuntimeIdentifier)' == 'ios-arm64'">iphoneos</LiveActivityNativePlatform>
+    <LiveActivityNativePlatform Condition="$([System.String]::Copy('$(RuntimeIdentifier)').StartsWith('iossimulator-'))">iphonesimulator</LiveActivityNativePlatform>
+    <LiveActivityExtensionConfiguration>Release</LiveActivityExtensionConfiguration>
+    <LiveActivityExtensionConfiguration Condition="$([System.String]::Copy('$(Configuration)').StartsWith('Debug'))">Debug</LiveActivityExtensionConfiguration>
+    <LiveActivityNativeRoot>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)', '..', 'Native'))</LiveActivityNativeRoot>
+    <LiveActivityExtensionOutput>$([MSBuild]::NormalizeDirectory('$(LiveActivityNativeRoot)', 'build', '$(LiveActivityNativePlatform)'))</LiveActivityExtensionOutput>
+    <LiveActivityXcodeProject>$([MSBuild]::NormalizePath('$(MSBuildThisFileDirectory)', '..', '..', 'ClassIsland.Mobile', 'ClassIsland.Mobile.xcodeproj'))</LiveActivityXcodeProject>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(LiveActivityNativePlatform)' != ''">
+    <CompileLiveActivitySwift Include="$([MSBuild]::NormalizePath('$(MSBuildThisFileDirectory)', '..', '..', 'ClassIsland.Mobile', 'Shared', 'SchedulePhase.swift'))" />
+    <CompileLiveActivitySwift Include="$([MSBuild]::NormalizePath('$(MSBuildThisFileDirectory)', '..', '..', 'ClassIsland.Mobile', 'Shared', 'LiveActivityLayout.swift'))" />
+    <CompileLiveActivitySwift Include="$([MSBuild]::NormalizePath('$(MSBuildThisFileDirectory)', '..', '..', 'ClassIsland.Mobile', 'Shared', 'WeatherPresentation.swift'))" />
+    <CompileLiveActivitySwift Include="$([MSBuild]::NormalizePath('$(MSBuildThisFileDirectory)', '..', '..', 'ClassIsland.Mobile', 'Shared', 'PluginActivityPresentation.swift'))" />
+    <CompileLiveActivitySwift Include="$([MSBuild]::NormalizePath('$(MSBuildThisFileDirectory)', '..', '..', 'ClassIsland.Mobile', 'Shared', 'ScheduleActivityAttributes.swift'))" />
+    <CompileLiveActivitySwift Include="$([MSBuild]::NormalizePath('$(LiveActivityNativeRoot)', 'AvaloniaLiveActivityBridge.swift'))" />
+    <LiveActivityExtensionSource Include="$([MSBuild]::NormalizePath('$(MSBuildThisFileDirectory)', '..', '..', 'ClassIsland.Mobile', 'LiveActivity', '*.swift'))" />
+    <LiveActivityExtensionSource Include="$([MSBuild]::NormalizePath('$(MSBuildThisFileDirectory)', '..', '..', 'ClassIsland.Mobile', 'Shared', '*.swift'))" />
+    <LiveActivityExtensionSource Include="$([MSBuild]::NormalizePath('$(MSBuildThisFileDirectory)', '..', '..', 'ClassIsland.Mobile', 'Supporting', 'LiveActivity-Info.plist'))" />
+    <LiveActivityExtensionSource Include="$(LiveActivityXcodeProject)/project.pbxproj" />
+
+    <AdditionalAppExtensions Include="$([MSBuild]::NormalizeDirectory('$(LiveActivityNativeRoot)', 'build'))">
+      <Name>ClassIslandLiveActivity</Name>
+      <BuildOutput>$(LiveActivityNativePlatform)</BuildOutput>
+      <CodesignWarnIfNoEntitlements>false</CodesignWarnIfNoEntitlements>
+    </AdditionalAppExtensions>
+  </ItemGroup>
+
+  <Target
+      Name="PrepareCompileLiveActivitySwift"
+      BeforeTargets="CompileLiveActivitySwift"
+      DependsOnTargets="_ComputeTargetArchitectures"
+      Condition="'$(LiveActivityNativePlatform)' != ''">
+    <MakeDir Directories="$(IntermediateOutputPath)" />
+    <ItemGroup>
+      <LiveActivitySwiftObject Include="@(CompileLiveActivitySwift -> '$(IntermediateOutputPath)%(Filename).o')" />
+    </ItemGroup>
+    <PropertyGroup>
+      <LiveActivitySwiftSourceFiles>@(CompileLiveActivitySwift -> '&quot;%(FullPath)&quot;', ' ')</LiveActivitySwiftSourceFiles>
+      <LiveActivitySwiftArch>$(TargetArchitectures.ToLowerInvariant())</LiveActivitySwiftArch>
+      <LiveActivitySwiftTarget Condition="'$(LiveActivityNativePlatform)' == 'iphoneos'">$(LiveActivitySwiftArch)-apple-ios$(SupportedOSPlatformVersion)</LiveActivitySwiftTarget>
+      <LiveActivitySwiftTarget Condition="'$(LiveActivityNativePlatform)' == 'iphonesimulator'">$(LiveActivitySwiftArch)-apple-ios$(SupportedOSPlatformVersion)-simulator</LiveActivitySwiftTarget>
+      <LiveActivitySwiftOptimization>-O</LiveActivitySwiftOptimization>
+      <LiveActivitySwiftOptimization Condition="$([System.String]::Copy('$(Configuration)').StartsWith('Debug'))">-Onone</LiveActivitySwiftOptimization>
+    </PropertyGroup>
+  </Target>
+
+  <Target
+      Name="CompileLiveActivitySwift"
+      Inputs="@(CompileLiveActivitySwift)"
+      Outputs="@(LiveActivitySwiftObject)"
+      BeforeTargets="_ComputeLinkNativeExecutableInputs"
+      DependsOnTargets="PrepareCompileLiveActivitySwift"
+      Condition="'$(LiveActivityNativePlatform)' != ''">
+    <Exec
+        Command="xcrun swiftc -target $(LiveActivitySwiftTarget) -sdk &quot;$(_SdkRoot)&quot; $(LiveActivitySwiftOptimization) $(LiveActivitySwiftSourceFiles) -emit-object -parse-as-library -module-name ClassIslandActivityBridge -swift-version 5"
+        WorkingDirectory="$(IntermediateOutputPath)" />
+    <ItemGroup>
+      <_XamarinMainLibraries Include="@(LiveActivitySwiftObject)" />
+      <_MainLinkerFlags Include="-L/usr/lib/swift" />
+      <_MainLinkerFlags Include="-L$(_SdkDevPath)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/$(LiveActivityNativePlatform)" />
+      <_MainLinkerFlags Include="-framework" />
+      <_MainLinkerFlags Include="ActivityKit" />
+    </ItemGroup>
+  </Target>
+
+  <Target
+      Name="BuildClassIslandLiveActivityExtension"
+      Inputs="@(LiveActivityExtensionSource)"
+      Outputs="$(LiveActivityExtensionOutput)ClassIslandLiveActivity.appex/Info.plist"
+      BeforeTargets="_ExtendAppExtensionReferences"
+      Condition="'$(LiveActivityNativePlatform)' != ''">
+    <MakeDir Directories="$(LiveActivityExtensionOutput)" />
+    <Exec Command="/usr/bin/xcodebuild build -project &quot;$(LiveActivityXcodeProject)&quot; -target ClassIslandLiveActivity -configuration $(LiveActivityExtensionConfiguration) -sdk $(LiveActivityNativePlatform) CONFIGURATION_BUILD_DIR=&quot;$(LiveActivityExtensionOutput)&quot; OBJROOT=&quot;$(LiveActivityNativeRoot)obj&quot; PRODUCT_BUNDLE_IDENTIFIER=cn.classisland.mobile.avalonia.liveactivity CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO ONLY_ACTIVE_ARCH=YES" />
+  </Target>
+</Project>

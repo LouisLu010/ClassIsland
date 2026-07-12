@@ -1,93 +1,178 @@
-name: Build iOS
+name: Build Avalonia iOS
 
 on:
   workflow_dispatch:
   push:
     paths:
-      - "ClassIsland.Mobile/**"
+      - "ClassIsland.Mobile.Avalonia/**"
+      - "ClassIsland/**"
+      - "ClassIsland.Core/**"
+      - "ClassIsland.Platforms.Abstractions/**"
+      - "ClassIsland.Shared/**"
+      - "ClassIsland.Shared.IPC/**"
+      - "roslyn/IconsMappingGenerator/**"
+      - "vendors/**"
+      - "AvaloniaShared.props"
+      - "CrossPlatformProps.props"
+      - "Global.props"
+      - "global.json"
+      - ".gitmodules"
       - ".github/workflows/build_ios.yml"
   pull_request:
     paths:
-      - "ClassIsland.Mobile/**"
+      - "ClassIsland.Mobile.Avalonia/**"
+      - "ClassIsland/**"
+      - "ClassIsland.Core/**"
+      - "ClassIsland.Platforms.Abstractions/**"
+      - "ClassIsland.Shared/**"
+      - "ClassIsland.Shared.IPC/**"
+      - "roslyn/IconsMappingGenerator/**"
+      - "vendors/**"
+      - "AvaloniaShared.props"
+      - "CrossPlatformProps.props"
+      - "Global.props"
+      - "global.json"
+      - ".gitmodules"
       - ".github/workflows/build_ios.yml"
 
+permissions:
+  contents: read
+  packages: read
+
+concurrency:
+  group: avalonia-ios-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  DOTNET_NOLOGO: "1"
+  IOS_PROJECT: ClassIsland.Mobile.Avalonia.iOS/ClassIsland.Mobile.Avalonia.iOS.csproj
+  IPA_NAME: ClassIsland-Avalonia-iOS-unsigned.ipa
+
 jobs:
-  test:
+  build:
     runs-on: macos-15
-    timeout-minutes: 30
+    timeout-minutes: 90
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: ClassIsland.Mobile.Avalonia
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
-      - name: Show Xcode version
-        run: xcodebuild -version
+      - name: Setup .NET 8 and 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
 
-      - name: Select simulator
-        id: simulator
-        shell: bash
+      - name: Show build environment
         run: |
-          device_id="$(xcrun simctl list devices available -j | jq -r '[.devices[][] | select(.name | startswith("iPhone"))][0].udid')"
-          test -n "$device_id" -a "$device_id" != "null"
-          echo "device_id=$device_id" >> "$GITHUB_OUTPUT"
+          set -euo pipefail
+          dotnet --info
+          dotnet --version | grep -E '^9\.0\.'
+          xcodebuild -version
+          xcode-select -p
 
-      - name: Build and test
-        working-directory: ClassIsland.Mobile
-        run: >-
-          xcodebuild test
-          -project ClassIsland.Mobile.xcodeproj
-          -scheme ClassIslandMobile
-          -destination 'platform=iOS Simulator,id=${{ steps.simulator.outputs.device_id }}'
-          CODE_SIGNING_ALLOWED=NO
-
-      - name: Build unsigned device archive
-        working-directory: ClassIsland.Mobile
+      - name: Add GitHub Package Registry
+        env:
+          GITHUB_PACKAGES_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          xcodebuild archive \
-            -project ClassIsland.Mobile.xcodeproj \
-            -scheme ClassIslandMobile \
-            -configuration Release \
-            -destination 'generic/platform=iOS' \
-            -archivePath "$RUNNER_TEMP/ClassIsland.xcarchive" \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY=""
+          set -euo pipefail
+          dotnet nuget add source \
+            --username ClassIsland \
+            --password "$GITHUB_PACKAGES_TOKEN" \
+            --store-password-in-clear-text \
+            --name github \
+            "https://nuget.pkg.github.com/ClassIsland/index.json"
+
+      - name: Restore iOS workload
+        run: |
+          set -euo pipefail
+          dotnet workload restore "$IOS_PROJECT"
+
+      - name: Restore packages
+        run: |
+          set -euo pipefail
+          dotnet restore "$IOS_PROJECT" \
+            --runtime ios-arm64 \
+            --disable-parallel
+
+      - name: Publish unsigned device app
+        run: |
+          set -euo pipefail
+          dotnet publish "$IOS_PROJECT" \
+            --configuration Release \
+            --framework net8.0-ios \
+            --runtime ios-arm64 \
+            --no-restore \
+            --maxcpucount:1 \
+            -p:EnableCodeSigning=false \
+            -p:CodesignEntitlements= \
+            -p:ArchiveOnBuild=false \
+            -p:BuildIpa=false \
+            -p:ValidateXcodeVersion=false \
+            -bl:"$RUNNER_TEMP/ClassIsland-Avalonia-iOS.binlog"
 
       - name: Package unsigned IPA
-        shell: bash
         run: |
-          app_path="$RUNNER_TEMP/ClassIsland.xcarchive/Products/Applications/ClassIsland.app"
-          test -d "$app_path"
-          test -d "$app_path/PlugIns/ClassIslandLiveActivity.appex"
+          set -euo pipefail
 
-          package_dir="$RUNNER_TEMP/ClassIsland-ipa"
+          search_root="$GITHUB_WORKSPACE/ClassIsland.Mobile.Avalonia/ClassIsland.Mobile.Avalonia.iOS/bin/Release/net8.0-ios/ios-arm64"
+          app_path="$(find "$search_root" -type d -name '*.app' -prune -print | sed -n '1p')"
+          test -n "$app_path"
+          test -d "$app_path"
+          test -f "$app_path/Info.plist"
+
+          /usr/bin/plutil -lint "$app_path/Info.plist"
+          bundle_id="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$app_path/Info.plist")"
+          executable="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$app_path/Info.plist")"
+          test "$bundle_id" = "cn.classisland.mobile.avalonia"
+          test -f "$app_path/$executable"
+          /usr/bin/file "$app_path/$executable" | grep -q 'arm64'
+
+          package_dir="$RUNNER_TEMP/ClassIsland-Avalonia-ipa"
           output_dir="$GITHUB_WORKSPACE/artifacts"
           mkdir -p "$package_dir/Payload" "$output_dir"
-          cp -R "$app_path" "$package_dir/Payload/"
+          /usr/bin/ditto \
+            "$app_path" \
+            "$package_dir/Payload/$(basename "$app_path")"
           /usr/bin/ditto \
             -c -k --sequesterRsrc --keepParent \
             "$package_dir/Payload" \
-            "$output_dir/ClassIsland-iOS-unsigned.ipa"
-          /usr/bin/unzip -tqq "$output_dir/ClassIsland-iOS-unsigned.ipa"
-          archive_listing="$RUNNER_TEMP/ClassIsland-ipa-files.txt"
-          /usr/bin/unzip -Z1 "$output_dir/ClassIsland-iOS-unsigned.ipa" \
-            > "$archive_listing"
-          grep -Fxq 'Payload/ClassIsland.app/Info.plist' "$archive_listing"
-          grep -Fxq \
-            'Payload/ClassIsland.app/PlugIns/ClassIslandLiveActivity.appex/Info.plist' \
-            "$archive_listing"
+            "$output_dir/$IPA_NAME"
+
+          /usr/bin/unzip -tqq "$output_dir/$IPA_NAME"
+          archive_listing="$RUNNER_TEMP/ClassIsland-Avalonia-ipa-files.txt"
+          /usr/bin/unzip -Z1 "$output_dir/$IPA_NAME" > "$archive_listing"
+          grep -Eq '^Payload/[^/]+\.app/Info\.plist$' "$archive_listing"
+
           (
             cd "$output_dir"
-            shasum -a 256 "ClassIsland-iOS-unsigned.ipa" \
-              > "ClassIsland-iOS-unsigned.ipa.sha256"
+            shasum -a 256 "$IPA_NAME" > "$IPA_NAME.sha256"
           )
 
       - name: Upload unsigned IPA
         uses: actions/upload-artifact@v4
         with:
-          name: ClassIsland-iOS-unsigned-${{ github.sha }}
+          name: ClassIsland-Avalonia-iOS-unsigned-${{ github.sha }}
           path: |
-            artifacts/ClassIsland-iOS-unsigned.ipa
-            artifacts/ClassIsland-iOS-unsigned.ipa.sha256
+            artifacts/${{ env.IPA_NAME }}
+            artifacts/${{ env.IPA_NAME }}.sha256
           if-no-files-found: error
           retention-days: 14
+
+      - name: Upload MSBuild log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ClassIsland-Avalonia-iOS-binlog-${{ github.sha }}
+          path: ${{ runner.temp }}/ClassIsland-Avalonia-iOS.binlog
+          if-no-files-found: ignore
+          retention-days: 7

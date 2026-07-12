@@ -132,11 +132,14 @@ public partial class App
         // Views
         services.AddTransient<ITopmostEffectPlayer>(x => x.GetRequiredService<TopmostEffectWindow>());
         services.AddSingleton<MainWindow>();
+        services.AddSingleton<PortableAppView>();
         // services.AddTransient<SplashWindowBase, SplashWindow>();
         // services.AddTransient<FeatureDebugWindow>();
         services.AddSingleton<TopmostEffectWindow>();
         services.AddSingleton<AppLogsWindow>();
+        services.AddSingleton<SettingsView>();
         services.AddSingleton<SettingsWindowNew>();
+        services.AddSingleton<ProfileSettingsView>();
         services.AddSingleton<ProfileSettingsWindow>();
         services.AddTransient<ClassPlanDetailsWindow>();
         services.AddTransient<WindowRuleDebugWindow>();
@@ -152,6 +155,14 @@ public partial class App
         services.AddSingleton<TutorialCenterWindow>();
         services.AddTransient<TutorialControllerWindow>();
         services.AddTransient<ISplashProvider, SplashWindow>();
+        if (IsPortableModeRequested)
+        {
+            services.AddSettingsPageGroup("classisland.mobile", "\ue7c9", "应用");
+            services.AddSettingsPageSingleton<PortableMainSettingsPage>();
+            services.AddSettingsPageSingleton<PortableProfileSettingsPage>();
+            services.AddSettingsPageSingleton<PortableDataTransferSettingsPage>();
+            services.AddSettingsPageSingleton<PortableLogsSettingsPage>();
+        }
         // 设置页面分组
         services.AddSettingsPageGroup("classisland.general", "\uef27", "通用");
         services.AddSettingsPageGroup("classisland.mainwindow", "\uec85", "主界面");
@@ -318,7 +329,10 @@ public partial class App
         // services.AddTutorialGroupByUri(new Uri("avares://ClassIsland/Assets/Tutorials/classisland.sp.json"));
         services.AddTutorialGroupByUri(new Uri("avares://ClassIsland/Assets/Tutorials/classisland.getStarted.json"));
         // Plugins
-        if (!ApplicationCommand.Safe && string.IsNullOrWhiteSpace(ApplicationCommand.ImportV1) && string.IsNullOrWhiteSpace(ApplicationCommand.ImportV2))
+        if (!ApplicationCommand.Safe &&
+            CurrentPlatformCapabilities.SupportsDynamicPlugins &&
+            string.IsNullOrWhiteSpace(ApplicationCommand.ImportV1) &&
+            string.IsNullOrWhiteSpace(ApplicationCommand.ImportV2))
         {
             PluginService.InitializePlugins(context, services);
         }

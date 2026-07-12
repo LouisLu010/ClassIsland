@@ -30,6 +30,7 @@ using Avalonia.Styling;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using ClassIsland.Controls.NotificationEffects;
+using ClassIsland.Abstractions;
 using ClassIsland.Core;
 using ClassIsland.Core.Abstractions;
 using ClassIsland.Core.Abstractions.Controls;
@@ -264,10 +265,10 @@ public class MainWindowLine : ContentControl, INotificationConsumer
 
     private bool _isTemplateApplied = false;
 
-    private MainWindow? _mainWindow;
+    private IMainWindowHost? _mainWindow;
 
-    public MainWindow MainWindow => _mainWindow ??= this.GetVisualRoot() as MainWindow ??
-        this.FindAncestorOfType<MainWindow>() ??
+    public IMainWindowHost MainWindow => _mainWindow ??= this.GetVisualRoot() as IMainWindowHost ??
+        this.GetVisualAncestors().OfType<IMainWindowHost>().FirstOrDefault() ??
         throw new InvalidOperationException("MainWindowLine is not attached to MainWindow.");
 
     public SettingsService SettingsService { get; } = IAppHost.GetService<SettingsService>();
@@ -430,7 +431,8 @@ public class MainWindowLine : ContentControl, INotificationConsumer
     private void OnLoaded(object? sender, RoutedEventArgs e)
     {
         _isUnloading = false;
-        _mainWindow = this.GetVisualRoot() as MainWindow ?? this.FindAncestorOfType<MainWindow>() ??
+        _mainWindow = this.GetVisualRoot() as IMainWindowHost ??
+            this.GetVisualAncestors().OfType<IMainWindowHost>().FirstOrDefault() ??
             throw new InvalidOperationException("MainWindowLine is not attached to MainWindow.");
         MainWindow.MousePosChanged += MainWindowOnMousePosChanged;
         MainWindow.RawInputEvent += MainWindowOnRawInputEvent;

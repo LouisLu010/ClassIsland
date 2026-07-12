@@ -21,6 +21,21 @@ public static class SettingsWindowRegistryExtensions
     /// <exception cref="ArgumentException"></exception>
     public static IServiceCollection AddSettingsPage<T>(this IServiceCollection services) where T : SettingsPageBase
     {
+        return AddSettingsPageCore<T>(services, false);
+    }
+
+    /// <summary>
+    /// 以单例生命周期注册设置页面，适用于承载不可重复挂载的共享视图。
+    /// </summary>
+    public static IServiceCollection AddSettingsPageSingleton<T>(this IServiceCollection services)
+        where T : SettingsPageBase
+    {
+        return AddSettingsPageCore<T>(services, true);
+    }
+
+    private static IServiceCollection AddSettingsPageCore<T>(IServiceCollection services, bool singleton)
+        where T : SettingsPageBase
+    {
         var type = typeof(T);
         if (type.GetCustomAttributes(false).FirstOrDefault(x => x is SettingsPageInfo) is not SettingsPageInfo info)
         {
@@ -44,7 +59,14 @@ public static class SettingsWindowRegistryExtensions
         {
             info.GroupId = group.Id;
         }
-        services.AddKeyedTransient<SettingsPageBase, T>(info.Id);
+        if (singleton)
+        {
+            services.AddKeyedSingleton<SettingsPageBase, T>(info.Id);
+        }
+        else
+        {
+            services.AddKeyedTransient<SettingsPageBase, T>(info.Id);
+        }
         SettingsWindowRegistryService.Registered.Add(info);
         return services;
     }

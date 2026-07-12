@@ -136,7 +136,8 @@ public partial class ComponentPresenter : UserControl, INotifyPropertyChanged
         // 理论上展示的内容的数据上下文应为MainWindow，这里不便用前端xaml绑定，故在后台设置。
         if (content != null && IsOnMainWindow)
         {
-            content.DataContext = TopLevel.GetTopLevel(this)?.DataContext;
+            content.DataContext = GetMainWindowDataContext(this) ??
+                                  TopLevel.GetTopLevel(this)?.DataContext;
         }
 
         PresentingContent = content;
@@ -201,8 +202,17 @@ public partial class ComponentPresenter : UserControl, INotifyPropertyChanged
     public static readonly AttachedProperty<bool> IsMainWindowLoadedProperty =
         AvaloniaProperty.RegisterAttached<ComponentPresenter, Control, bool>("IsMainWindowLoaded", inherits: true);
 
+    public static readonly AttachedProperty<object?> MainWindowDataContextProperty =
+        AvaloniaProperty.RegisterAttached<ComponentPresenter, Control, object?>(
+            "MainWindowDataContext",
+            inherits: true);
+
     internal static void SetIsMainWindowLoaded(Control obj, bool value) => obj.SetValue(IsMainWindowLoadedProperty, value);
     public static bool GetIsMainWindowLoaded(Control obj) => obj.GetValue(IsMainWindowLoadedProperty);
+    internal static void SetMainWindowDataContext(Control obj, object? value) =>
+        obj.SetValue(MainWindowDataContextProperty, value);
+    public static object? GetMainWindowDataContext(Control obj) =>
+        obj.GetValue(MainWindowDataContextProperty);
     
     static ComponentPresenter()
     {

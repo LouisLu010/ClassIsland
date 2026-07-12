@@ -354,20 +354,19 @@ private struct ScheduleProgressView: View {
     let tint: Color
 
     var body: some View {
-        TimelineView(.periodic(from: .now, by: 1)) { context in
-            ProgressView(
-                value: progress(
-                    now: context.date.addingTimeInterval(timeOffsetSeconds)
-                )
-            )
-            .tint(tint)
-        }
+        ProgressView(
+            timerInterval: systemStart...systemEnd,
+            countsDown: false
+        )
+        .tint(tint)
     }
 
-    private func progress(now: Date) -> Double {
-        let duration = end.timeIntervalSince(start)
-        guard duration > 0 else { return 0 }
-        return min(max(now.timeIntervalSince(start) / duration, 0), 1)
+    private var systemStart: Date {
+        start.addingTimeInterval(-timeOffsetSeconds)
+    }
+
+    private var systemEnd: Date {
+        max(end.addingTimeInterval(-timeOffsetSeconds), systemStart.addingTimeInterval(1))
     }
 }
 

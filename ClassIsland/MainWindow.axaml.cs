@@ -23,6 +23,7 @@ using Avalonia.Platform;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using ClassIsland.Controls.EditMode;
+using ClassIsland.Abstractions;
 using ClassIsland.Core;
 using ClassIsland.Core.Abstractions.Services;
 using ClassIsland.Core.Abstractions.Services.Management;
@@ -69,7 +70,7 @@ namespace ClassIsland;
 /// Interaction logic for MainWindow.xaml
 /// </summary>
 [PseudoClasses(":dock-top", ":dock-bottom", ":edit-mode", ":windowed", ":no-windowed-transparent")]
-public partial class MainWindow : Window, ITopmostEffectPlayer
+public partial class MainWindow : Window, ITopmostEffectPlayer, IMainWindowHost
 {
     #region Fields & Properties
     // public static readonly ICommand TrayIconLeftClickedCommand = new RoutedCommand();
@@ -162,6 +163,8 @@ public partial class MainWindow : Window, ITopmostEffectPlayer
     private Point _centerPointCache = new Point(0, 0);
 
     private List<object> TopmostLocks { get; } = [];
+
+    private bool _portableHostInitialized;
 
 
     public static readonly StyledProperty<double> BackgroundWidthProperty = AvaloniaProperty.Register<MainWindow, double>(
@@ -313,6 +316,7 @@ public partial class MainWindow : Window, ITopmostEffectPlayer
             LessonsService.PreMainTimerTicked += ProcessMousePos;
         }
 
+        ComponentPresenter.SetMainWindowDataContext(this, DataContext);
         ComponentPresenter.SetIsMainWindowLoaded(this, true);
         RefreshDefaultMainWindowFont();
         StartupCompleted?.Invoke(this, EventArgs.Empty);
@@ -1006,6 +1010,11 @@ public partial class MainWindow : Window, ITopmostEffectPlayer
     
     private void UpdateWindowPos(bool updateEffectWindow=false)
     {
+        if (App.IsPortableModeRequested)
+        {
+            return;
+        }
+
         if (ViewModel.IsEditMode)
         {
             NewWindowPosUpdateImpl();
@@ -1035,6 +1044,46 @@ public partial class MainWindow : Window, ITopmostEffectPlayer
             Logger.LogError(ex, "无法获取当前dpi");
         }
     }
+
+    public void UpdatePortableHostBounds(Size size)
+    {
+        if (size.Width <= 0 || size.Height <= 0)
+        {
+            return;
+        }
+
+        ViewModel.ActualClientBound = new Rect(0, 0, size.Width, size.Height);
+        ViewModel.ActualRootOffsetX = 0;
+        ViewModel.ActualRootOffsetY = 0;
+        ViewModel.GridRootLeft = 0;
+        ViewModel.GridRootTop = 0;
+        LayoutContainerGrid.Width = size.Width;
+        LayoutContainerGrid.Height = size.Height;
+    }
+
+    public void InitializePortableHost(Control host)
+    {
+        ComponentPresenter.SetMainWindowDataContext(host, DataContext);
+
+        if (_portableHostInitialized)
+        {
+            ComponentPresenter.SetIsMainWindowLoaded(host, true);
+            return;
+        }
+
+        _portableHostInitialized = true;
+        XamlThemeService.LoadAllThemes();
+        UpdateStyleStates();
+        UpdateTheme();
+        RefreshDefaultMainWindowFont();
+        ComponentPresenter.SetIsMainWindowLoaded(host, true);
+        StartupCompleted?.Invoke(this, EventArgs.Empty);
+    }
+
+    ICommand IMainWindowHost.ShowComponentSettingsCommand => ShowComponentSettingsCommand;
+    ICommand IMainWindowHost.OpenMainWindowLineSettingsCommand => OpenMainWindowLineSettingsCommand;
+    ICommand IMainWindowHost.RemoveMainWindowLineCommand => RemoveMainWindowLineCommand;
+    ICommand IMainWindowHost.CloseContainerComponentCommand => CloseContainerComponentCommand;
 
     private void MainWindow_OnSizeChanged(object sender, SizeChangedEventArgs e)
     {

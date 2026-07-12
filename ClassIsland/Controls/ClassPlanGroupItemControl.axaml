@@ -52,8 +52,8 @@
                 <RadioButton.IsChecked>
                     <MultiBinding Converter="{StaticResource StringToRadioButtonSelectionConverter}"
                                   Mode="OneWay">
-                        <Binding Path="ViewModel.ProfileService.Profile.SelectedClassPlanGroupId" 
-                                                 RelativeSource="{RelativeSource FindAncestor, AncestorType=views:ProfileSettingsWindow}"/>
+                        <Binding Path="ViewModel.ProfileService.Profile.SelectedClassPlanGroupId"
+                                 RelativeSource="{RelativeSource FindAncestor, AncestorType=views:ProfileSettingsView}"/>
                         <Binding Path="Key" Mode="OneWay"/>
                     </MultiBinding>
                 </RadioButton.IsChecked>

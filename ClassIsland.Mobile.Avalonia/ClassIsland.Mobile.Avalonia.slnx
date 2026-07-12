@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="ClassIsland.Mobile.Avalonia/ClassIsland.Mobile.Avalonia.csproj" />
+  <Project Path="ClassIsland.Mobile.Avalonia.Desktop/ClassIsland.Mobile.Avalonia.Desktop.csproj" />
+  <Project Path="ClassIsland.Mobile.Avalonia.iOS/ClassIsland.Mobile.Avalonia.iOS.csproj">
+    <Deploy />
+  </Project>
+</Solution>

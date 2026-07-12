@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ClassIsland"
+        xmlns:abstractions="clr-namespace:ClassIsland.Abstractions"
         mc:Ignorable="d"
         Height="1"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
@@ -366,8 +367,8 @@
                                                                         IsVisible="{Binding $self.(ci:MainWindowStylesAssist.MainWindowInEditMode)}" />
                                                                 </ci:TutorialBarrier>
                                                                 <controls:MainWindowLine Grid.Column="1"
-                                                                        WindowDockingLocation="{Binding ViewModel.Settings.WindowDockingLocation, Mode=OneWay, RelativeSource={RelativeSource AncestorType=local:MainWindow}}"
-                                                                        LastStoryboardName="{Binding ViewModel.LastStoryboardName, Mode=OneWay, RelativeSource={RelativeSource AncestorType=local:MainWindow}}"
+                                                                        WindowDockingLocation="{Binding ViewModel.Settings.WindowDockingLocation, Mode=OneWay, RelativeSource={RelativeSource AncestorType=abstractions:IMainWindowHost}}"
+                                                                        LastStoryboardName="{Binding ViewModel.LastStoryboardName, Mode=OneWay, RelativeSource={RelativeSource AncestorType=abstractions:IMainWindowHost}}"
                                                                         IsMainLine="{Binding IsMainLine}"
                                                                         IsNotificationEnabled="{Binding IsNotificationEnabled}"
                                                                         LineNumber="0"
@@ -375,7 +376,7 @@
                                                                         HideOnRule="{Binding HideOnRule,Mode=OneWay}"
                                                                         HorizontalAlignment="Stretch"
                                                                         Settings="{Binding}"
-                                                                        IsOverlayOpen="{Binding ViewModel.IsOverlayOpened, Mode=OneWay, RelativeSource={RelativeSource AncestorType=local:MainWindow}}">
+                                                                        IsOverlayOpen="{Binding ViewModel.IsOverlayOpened, Mode=OneWay, RelativeSource={RelativeSource AncestorType=abstractions:IMainWindowHost}}">
                                                                     <editMode:EditableComponentsListBox
                                                                         ItemsSource="{Binding Children}"
                                                                         Classes="root-components-control"
@@ -383,7 +384,7 @@
                                                                         AttachedToVisualTree="ListBoxMainWindowLineSettings_OnAttachedToVisualTree"
                                                                         DetachedFromVisualTree="ListBoxMainWindowLineSettings_OnDetachedFromVisualTree"
                                                                         SelectionChanged="SelectorComponents_OnSelectionChanged"
-                                                                        ShowComponentSettingsCommand="{Binding $parent[local:MainWindow].ShowComponentSettingsCommand}"
+                                                                        ShowComponentSettingsCommand="{Binding ShowComponentSettingsCommand, RelativeSource={RelativeSource AncestorType=abstractions:IMainWindowHost}}"
                                                                         ClipToBounds="False">
                                                                         <editMode:EditableComponentsListBox.ItemTemplate>
                                                                             <DataTemplate>
@@ -405,7 +406,7 @@
                                                                             Spacing="2"
                                                                             TextElement.FontSize="14">
                                                                         <Button
-                                                                            Command="{Binding $parent[local:MainWindow].OpenMainWindowLineSettingsCommand}"
+                                                                            Command="{Binding OpenMainWindowLineSettingsCommand, RelativeSource={RelativeSource AncestorType=abstractions:IMainWindowHost}}"
                                                                             CommandParameter="{Binding}"
                                                                             VerticalAlignment="Center"
                                                                             x:Name="ButtonMainWindowLineSettings"
@@ -436,7 +437,7 @@
                                                                             VerticalAlignment="Center"
                                                                             x:Name="ButtonMainWindowLineDelete"
                                                                             ToolTip.Tip="删除"
-                                                                            Command="{Binding $parent[local:MainWindow].RemoveMainWindowLineCommand}"
+                                                                            Command="{Binding RemoveMainWindowLineCommand, RelativeSource={RelativeSource AncestorType=abstractions:IMainWindowHost}}"
                                                                             CommandParameter="{Binding}"
                                                                             Theme="{StaticResource TransparentButton}"
                                                                             Content="{ci:FluentIcon &#xE61D;}" />
@@ -502,7 +503,7 @@
                                                                         <Button Content="{ci:FluentIcon &#xE671;}"
                                                                                 ToolTip.Tip="关闭"
                                                                                 Theme="{StaticResource TransparentButton}"
-                                                                                Command="{Binding $parent[local:MainWindow].CloseContainerComponentCommand}"
+                                                                                Command="{Binding CloseContainerComponentCommand, RelativeSource={RelativeSource AncestorType=abstractions:IMainWindowHost}}"
                                                                                 CommandParameter="{Binding}" />
                                                                     </ci:TutorialBarrier>
                                                                     <controls1:IconSourceElement
@@ -531,7 +532,7 @@
                                                                         AttachedToVisualTree="ListBoxContainerComponent_OnAttachedToVisualTree"
                                                                         DetachedFromVisualTree="ListBoxContainerComponent_OnDetachedFromVisualTree"
                                                                         SelectionChanged="SelectorComponents_OnSelectionChanged"
-                                                                        ShowComponentSettingsCommand="{Binding $parent[local:MainWindow].ShowComponentSettingsCommand}"
+                                                                        ShowComponentSettingsCommand="{Binding ShowComponentSettingsCommand, RelativeSource={RelativeSource AncestorType=abstractions:IMainWindowHost}}"
                                                                         Tag="{Binding}"
                                                                         ClipToBounds="False"
                                                                         Height="40">

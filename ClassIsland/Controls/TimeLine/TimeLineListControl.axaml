@@ -251,7 +251,7 @@
                                                             <StackPanel Orientation="Horizontal">
                                                                 <Button Content="{ci:FluentIcon &#xE61C;}"
                                                                         Foreground="IndianRed"
-                                                                        Command="{x:Static views:ProfileSettingsWindow.RemoveSelectedTimeLayoutItemCommand}"
+                                                  Command="{x:Static views:ProfileSettingsView.RemoveSelectedTimeLayoutItemCommand}"
                                                                         Theme="{StaticResource TransparentButton}"
                                                                         ToolTip.Tip="删除时间点" />
                                                             </StackPanel>
@@ -284,7 +284,7 @@
                                                                     ToolTip.Tip="编辑时间点…" Margin="0 0 4 0" />-->
                                                                 <Button Content="{ci:FluentIcon &#xE61C;}"
                                                                         Foreground="IndianRed"
-                                                                        Command="{x:Static views:ProfileSettingsWindow.RemoveSelectedTimeLayoutItemCommand}"
+                                                  Command="{x:Static views:ProfileSettingsView.RemoveSelectedTimeLayoutItemCommand}"
                                                                         Theme="{StaticResource TransparentButton}"
                                                                         ToolTip.Tip="删除时间点" />
                                                             </StackPanel>

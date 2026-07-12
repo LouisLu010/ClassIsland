@@ -300,6 +300,12 @@ final class AppModel: ObservableObject {
 
     func snapshot(for date: Date, now: Date = Date()) -> ScheduleSnapshot? {
         guard let profile else { return nil }
+        let courseNow = now.addingTimeInterval(settings.timeOffsetSeconds)
+        if Calendar.current.isDate(date, inSameDayAs: courseNow),
+           let currentSnapshot,
+           Calendar.current.isDate(currentSnapshot.date, inSameDayAs: courseNow) {
+            return currentSnapshot
+        }
         return engine.snapshot(profile: profile, settings: settings, at: now, for: date)
     }
 

@@ -30,14 +30,30 @@ namespace ClassIsland;
 
 public static class Program
 {
+    private static int _sharedRuntimeInitialized;
+
+    internal static void InitializeSharedRuntime()
+    {
+        if (Interlocked.Exchange(ref _sharedRuntimeInitialized, 1) != 0)
+        {
+            return;
+        }
+
+        AppDomain.CurrentDomain.UnhandledException += DiagnosticService.ProcessDomainUnhandledException;
+        AppBase.CurrentLifetime = ApplicationLifetime.EarlyLoading;
+        ConfigureFileHelper.SerializerOptions.Converters.Add(new ColorHexJsonConverter());
+        ConfigureFileHelper.SerializerOptions.Converters.Add(new GuidEmptyFallbackConverter());
+        GlobalStorageService.InitializeGlobalStorage();
+
+        UserData.RegisterAssembly(typeof(Program).Assembly);
+        UserData.RegisterAssembly(typeof(Tutorial).Assembly);
+        UserData.RegisterAssembly(typeof(Profile).Assembly);
+    }
+
     [STAThread]
     public static Func<App> AppEntry(string[] args, Action? postInit = null)
     {
-        AppDomain.CurrentDomain.UnhandledException += DiagnosticService.ProcessDomainUnhandledException;
-        AppBase.CurrentLifetime = ApplicationLifetime.EarlyLoading;
-        
-        ConfigureFileHelper.SerializerOptions.Converters.Add(new ColorHexJsonConverter());
-        ConfigureFileHelper.SerializerOptions.Converters.Add(new GuidEmptyFallbackConverter());
+        InitializeSharedRuntime();
 
         var command = new RootCommand
         {
@@ -68,8 +84,6 @@ public static class Program
         command.Handler = CommandHandler.Create((ApplicationCommand c) => { App.ApplicationCommand = c; });
         command.Invoke(args);
         
-        GlobalStorageService.InitializeGlobalStorage();
-
         if (App.ApplicationCommand.Diagnostic)
         {
             App.ApplicationCommand.Verbose = true;
@@ -125,10 +139,6 @@ public static class Program
             // ignore
         }
 
-        UserData.RegisterAssembly(typeof(Program).Assembly);
-        UserData.RegisterAssembly(typeof(Tutorial).Assembly);
-        UserData.RegisterAssembly(typeof(Profile).Assembly);
-        
         return () => new App()
         {
             Mutex = mutex,

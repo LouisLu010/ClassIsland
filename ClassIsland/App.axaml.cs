@@ -236,10 +236,17 @@ public partial class App : AppBase, IAppHost
 
     public override void Initialize()
     {
-        Environment.CurrentDirectory = Path.GetDirectoryName(Environment.ProcessPath) ?? "./";
-        ActivatePackageType();
-        ActivateAppDirectories();
-        if (!Design.IsDesignMode && !System.OperatingSystem.IsMacOS())
+        if (IsPortableModeRequested)
+        {
+            InitializePortableDirectories();
+        }
+        else
+        {
+            Environment.CurrentDirectory = Path.GetDirectoryName(Environment.ProcessPath) ?? "./";
+            ActivatePackageType();
+            ActivateAppDirectories();
+        }
+        if (!Design.IsDesignMode && !System.OperatingSystem.IsMacOS() && !IsPortableModeRequested)
         {
             this.EnableHotReload();
         }
@@ -464,6 +471,12 @@ public partial class App : AppBase, IAppHost
 
     public override void OnFrameworkInitializationCompleted()
     {
+        if (TryInitializePortableLifetime())
+        {
+            base.OnFrameworkInitializationCompleted();
+            return;
+        }
+
         if (ApplicationLifetime is IControlledApplicationLifetime lifetime)
         {
             lifetime.Startup += DesktopLifetimeOnStartup;

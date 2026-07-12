@@ -1,0 +1,8 @@
+<UserControl x:Class="ClassIsland.Views.PortableAppView"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{DynamicResource SolidBackgroundFillColorBaseBrush}">
+    <ContentControl x:Name="ViewHost"
+                    HorizontalContentAlignment="Stretch"
+                    VerticalContentAlignment="Stretch" />
+</UserControl>

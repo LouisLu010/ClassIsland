@@ -116,10 +116,10 @@
         <AvaloniaResource Remove="Assets\Localization\TrayMenu\Localization.TrayMenu.resx" />
         <None Include="Assets\AppLogo.png" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" PublishFolderType="Resource" />
     </ItemGroup>
-    <ItemGroup Condition="'$(Configuration)' == 'Debug' Or '$(Configuration)' == 'Debug_MSIX'">
+    <ItemGroup Condition="'$(Configuration)' == 'Debug' Or '$(Configuration)' == 'Debug_MSIX' Or '$(PortableBuilding)' == 'true'">
         <AvaloniaResource Include="Assets\**" />
     </ItemGroup>
-    <ItemGroup Condition="'$(Configuration)' != 'Debug' And '$(Configuration)' != 'Debug_MSIX'">
+    <ItemGroup Condition="'$(Configuration)' != 'Debug' And '$(Configuration)' != 'Debug_MSIX' And '$(PortableBuilding)' != 'true'">
         <None Update="Assets\**">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
             <CopyToPublishDirectory>Always</CopyToPublishDirectory>
@@ -179,10 +179,14 @@
 	  <EmbeddedResource Remove="Assets\Localization\TrayMenu\Localization.TrayMenu.zh-Hant.resx" />
 	</ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\ClassIsland.Core\ClassIsland.Core.csproj" />
-        <ProjectReference Include="..\ClassIsland.Shared\ClassIsland.Shared.csproj" />
-        <ProjectReference Include="..\vendors\EdgeTtsSharp\Edge_tts_sharp\Edge_tts_sharp.csproj" />
-        <ProjectReference Include="..\vendors\PhainonDistributionCenter.Shared\PhainonDistributionCenter.Shared.csproj" />
+        <ProjectReference Include="..\ClassIsland.Core\ClassIsland.Core.csproj"
+                          UndefineProperties="PortableBuilding" />
+        <ProjectReference Include="..\ClassIsland.Shared\ClassIsland.Shared.csproj"
+                          UndefineProperties="PortableBuilding" />
+        <ProjectReference Include="..\vendors\EdgeTtsSharp\Edge_tts_sharp\Edge_tts_sharp.csproj"
+                          UndefineProperties="PortableBuilding" />
+        <ProjectReference Include="..\vendors\PhainonDistributionCenter.Shared\PhainonDistributionCenter.Shared.csproj"
+                          UndefineProperties="PortableBuilding" />
     </ItemGroup>
 	<ItemGroup>
 	  <Compile Update="Controls\TimeLine\TimeLineListItemControl.axaml.cs">

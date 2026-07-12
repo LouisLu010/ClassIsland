@@ -27,6 +27,7 @@ using ClassIsland.Core.Abstractions.Services;
 using ClassIsland.Core.Commands;
 using ClassIsland.Core.Controls;
 using ClassIsland.Core.Enums.Profile;
+using ClassIsland.Core.Extensions.UI;
 using ClassIsland.Core.Helpers.UI;
 using ClassIsland.Core.Models.Profile;
 using ClassIsland.Core.Models.UI;
@@ -301,7 +302,7 @@ public partial class ProfileSettingsView : UserControl
             DefaultButton = ContentDialogButton.Primary,
             PrimaryButtonText = "信任此档案",
             SecondaryButtonText = "取消"
-        }.ShowAsync();
+        }.ShowAsyncAuto();
 
         if (result == ContentDialogResult.Primary)
         {
@@ -343,7 +344,7 @@ public partial class ProfileSettingsView : UserControl
             DefaultButton = ContentDialogButton.Primary,
             PrimaryButtonText = "新建",
             SecondaryButtonText = "取消"
-        }.ShowAsync();
+        }.ShowAsyncAuto();
 
         var path = Path.Combine(Services.ProfileService.ProfilePath, $"{textBox.Text}.json");
         if (r != ContentDialogResult.Primary || File.Exists(path))
@@ -397,7 +398,7 @@ public partial class ProfileSettingsView : UserControl
             DefaultButton = ContentDialogButton.Primary,
             PrimaryButtonText = "重命名",
             SecondaryButtonText = "取消"
-        }.ShowAsync();
+        }.ShowAsyncAuto();
 
         var raw = Path.Combine(Services.ProfileService.ProfilePath, $"{ViewModel.SelectedProfile}");
         var path = Path.Combine(Services.ProfileService.ProfilePath, $"{textBox.Text}.json");
@@ -454,7 +455,7 @@ public partial class ProfileSettingsView : UserControl
             DefaultButton = ContentDialogButton.Primary,
             PrimaryButtonText = "删除",
             SecondaryButtonText = "取消"
-        }.ShowAsync();
+        }.ShowAsyncAuto();
 
         if (r == ContentDialogResult.Primary)
         {

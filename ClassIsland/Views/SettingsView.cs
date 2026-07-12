@@ -40,6 +40,7 @@ using Avalonia.Media;
 using Avalonia.Platform;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
+using ClassIsland.Core.Extensions.UI;
 using ClassIsland.Core.Helpers.UI;
 using ClassIsland.Core.Models.UI;
 using ClassIsland.Platforms.Abstraction;
@@ -555,7 +556,7 @@ public sealed class SettingsView : SettingsShell, INavigationPageFactory
                 PrimaryButtonText = "重启",
                 CloseButtonText = "取消",
                 DefaultButton = ContentDialogButton.Primary
-            }.ShowAsync(topLevel);
+            }.ShowAsyncAuto(topLevel);
             IsShowingRestartDialog = false;
             if (r != ContentDialogResult.Primary)
                 return;

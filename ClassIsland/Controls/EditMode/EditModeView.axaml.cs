@@ -16,6 +16,7 @@ using ClassIsland.Core.Abstractions.Services;
 using ClassIsland.Core.Assists;
 using ClassIsland.Core.Controls;
 using ClassIsland.Core.Controls.Ruleset;
+using ClassIsland.Core.Extensions.UI;
 using ClassIsland.Core.Helpers.UI;
 using ClassIsland.Core.Models.Components;
 using ClassIsland.Core.Models.UI;
@@ -290,7 +291,7 @@ public partial class EditModeView : UserControl
                 Label = "组件名",
                 Suffix = ".json"
             }
-        }.ShowAsync();
+        }.ShowAsyncAuto();
 
         ViewModel.CreateProfileName = textBox.Text;
         var path = Path.Combine(ClassIsland.Services.ComponentsService.ComponentSettingsPath,
@@ -338,7 +339,7 @@ public partial class EditModeView : UserControl
             DefaultButton = ContentDialogButton.Primary,
             PrimaryButtonText = "删除",
             SecondaryButtonText = "取消"
-        }.ShowAsync();
+        }.ShowAsyncAuto();
 
         if (r == ContentDialogResult.Primary)
         {
@@ -367,7 +368,7 @@ public partial class EditModeView : UserControl
             DefaultButton = ContentDialogButton.Primary,
             PrimaryButtonText = "重命名",
             SecondaryButtonText = "取消"
-        }.ShowAsync();
+        }.ShowAsyncAuto();
 
         var raw = Path.Combine(Services.ComponentsService.ComponentSettingsPath, $"{name}.json");
         var path = Path.Combine(Services.ComponentsService.ComponentSettingsPath, $"{textBox.Text}.json");

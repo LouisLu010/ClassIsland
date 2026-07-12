@@ -15,6 +15,7 @@ using ClassIsland.Core.Abstractions.Services.Management;
 using ClassIsland.Core.Attributes;
 using ClassIsland.Core.Controls;
 using ClassIsland.Core.Enums.SettingsWindow;
+using ClassIsland.Core.Extensions.UI;
 using ClassIsland.Core.Helpers.UI;
 using ClassIsland.Core.Models.ProfileAnalyzing;
 using ClassIsland.Platforms.Abstraction;
@@ -123,7 +124,7 @@ public partial class DebugPage : SettingsPageBase
             PrimaryButtonText = "确定",
             SecondaryButtonText = "取消",
             DefaultButton = ContentDialogButton.Primary
-        }.ShowAsync();
+        }.ShowAsyncAuto();
         if (result != ContentDialogResult.Primary)
         {
             return;
@@ -172,7 +173,7 @@ public partial class DebugPage : SettingsPageBase
             Content = textBox,
             PrimaryButtonText = "确定",
             DefaultButton = ContentDialogButton.Primary
-        }.ShowAsync();
+        }.ShowAsyncAuto();
         if (result != ContentDialogResult.Primary)
         {
             return;

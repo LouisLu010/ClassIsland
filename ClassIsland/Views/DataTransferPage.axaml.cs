@@ -17,6 +17,7 @@ using Avalonia.Platform;
 using Avalonia.Platform.Storage;
 using ClassIsland.Core;
 using ClassIsland.Core.Abstractions.Services;
+using ClassIsland.Core.Extensions.UI;
 using ClassIsland.Core.Helpers.UI;
 using ClassIsland.Core.Models.Components;
 using ClassIsland.Enums;
@@ -122,7 +123,7 @@ public partial class DataTransferPage : UserControl
             PrimaryButtonText = "重启并继续",
             SecondaryButtonText = "取消",
             DefaultButton = ContentDialogButton.Primary
-        }.ShowAsync(TopLevel.GetTopLevel(this));
+        }.ShowAsyncAuto(TopLevel.GetTopLevel(this));
         if (r != ContentDialogResult.Primary)
         {
             return;
@@ -300,7 +301,7 @@ public partial class DataTransferPage : UserControl
             PrimaryButtonText = "重启并继续",
             SecondaryButtonText = "取消",
             DefaultButton = ContentDialogButton.Primary
-        }.ShowAsync(TopLevel.GetTopLevel(this));
+        }.ShowAsyncAuto(TopLevel.GetTopLevel(this));
         if (r != ContentDialogResult.Primary)
         {
             return;
@@ -728,7 +729,7 @@ public partial class DataTransferPage : UserControl
             PrimaryButtonText = "重启并继续",
             SecondaryButtonText = "取消",
             DefaultButton = ContentDialogButton.Primary
-        }.ShowAsync(TopLevel.GetTopLevel(this));
+        }.ShowAsyncAuto(TopLevel.GetTopLevel(this));
         if (r != ContentDialogResult.Primary)
         {
             return;

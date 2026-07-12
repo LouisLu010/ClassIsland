@@ -23,6 +23,7 @@ using ClassIsland.Core.Attributes;
 using ClassIsland.Core.Controls;
 using ClassIsland.Core.Enums;
 using ClassIsland.Core.Enums.SettingsWindow;
+using ClassIsland.Core.Extensions.UI;
 using ClassIsland.Core.Helpers;
 using ClassIsland.Core.Helpers.UI;
 using ClassIsland.Core.Models.Plugin;
@@ -350,7 +351,7 @@ public partial class PluginsSettingsPage : SettingsPageBase
             return;
         }
 
-        var result = await dialog.ShowAsync(topLevel);
+        var result = await dialog.ShowAsyncAuto(topLevel);
         if (result != ContentDialogResult.Primary)
             return;
 
@@ -467,7 +468,7 @@ public partial class PluginsSettingsPage : SettingsPageBase
                 SecondaryButtonText = "取消",
                 PrimaryButtonText = "继续",
                 DefaultButton = ContentDialogButton.Secondary
-            }.ShowAsync();
+            }.ShowAsyncAuto();
             if (result != ContentDialogResult.Primary)
             {
                 return;
@@ -484,7 +485,7 @@ public partial class PluginsSettingsPage : SettingsPageBase
                 SecondaryButtonText = "取消",
                 PrimaryButtonText = "继续",
                 DefaultButton = ContentDialogButton.Secondary
-            }.ShowAsync();
+            }.ShowAsyncAuto();
             if (result != ContentDialogResult.Primary)
             {
                 return;

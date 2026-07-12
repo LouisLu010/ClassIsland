@@ -8,6 +8,7 @@ using Avalonia.Interactivity;
 using ClassIsland.Core.Abstractions.Services;
 using ClassIsland.Core.Abstractions.Services.Management;
 using ClassIsland.Core.Controls;
+using ClassIsland.Core.Extensions.UI;
 using ClassIsland.Core.Helpers.UI;
 using ClassIsland.Shared.Models.Profile;
 using ClassIsland.Services;
@@ -96,7 +97,7 @@ public partial class ClassChangingWindow : MyWindow
                 PrimaryButtonText = "继续",
                 SecondaryButtonText = "取消",
                 DefaultButton = ContentDialogButton.Primary
-            }.ShowAsync();
+            }.ShowAsyncAuto();
             if (r != ContentDialogResult.Primary)
             {
                 return;

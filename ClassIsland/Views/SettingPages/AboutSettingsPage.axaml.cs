@@ -21,6 +21,7 @@ using ClassIsland.Core.Abstractions.Services.Management;
 using ClassIsland.Core.Attributes;
 using ClassIsland.Core.Controls;
 using ClassIsland.Core.Enums.SettingsWindow;
+using ClassIsland.Core.Extensions.UI;
 using ClassIsland.Core.Helpers.UI;
 using ClassIsland.Core.Models.UI;
 using ClassIsland.Helpers;
@@ -93,7 +94,7 @@ public partial class AboutSettingsPage : SettingsPageBase
             DefaultButton = ContentDialogButton.Primary
         };
         dialog.SecondaryButtonClick += ButtonCopyDiagnosticInfo_OnClick;
-        await dialog.ShowAsync();
+        await dialog.ShowAsyncAuto();
     }
 
     private async void ButtonCopyDiagnosticInfo_OnClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
@@ -207,7 +208,7 @@ public partial class AboutSettingsPage : SettingsPageBase
             },
             PrimaryButtonText = "关闭",
             DefaultButton = ContentDialogButton.Primary
-        }.ShowAsync();
+        }.ShowAsyncAuto();
     }
 
     private async void DebugBorder_OnPointerPressed(object? sender, PointerPressedEventArgs e)
@@ -256,7 +257,7 @@ public partial class AboutSettingsPage : SettingsPageBase
                 PrimaryButtonText = "继续",
                 SecondaryButtonText = "取消",
                 DefaultButton = ContentDialogButton.Primary
-            }.ShowAsync();
+            }.ShowAsyncAuto();
             
             
             if (r != ContentDialogResult.Primary)
@@ -294,7 +295,7 @@ public partial class AboutSettingsPage : SettingsPageBase
             DefaultButton = ContentDialogButton.Primary,
             SecondaryButtonText = "在浏览器查看"
         };
-        var r = await contentDialog.ShowAsync();
+        var r = await contentDialog.ShowAsyncAuto();
         if (r == ContentDialogResult.Secondary)
         {
             IAppHost.GetService<IUriNavigationService>().NavigateWrapped(new Uri("https://res.classisland.tech/banners/reunion.webp"));

@@ -12,6 +12,7 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Platform;
 using ClassIsland.Core;
 using ClassIsland.Core.Controls;
+using ClassIsland.Core.Extensions.UI;
 using ClassIsland.Core.Helpers.UI;
 using ClassIsland.Core.Models.UI;
 using ClassIsland.Helpers;
@@ -232,7 +233,7 @@ public partial class WelcomeWindow : MyWindow, INavigationPageFactory
             PrimaryButtonText = "退出",
             SecondaryButtonText = "取消",
             DefaultButton = ContentDialogButton.Primary
-        }.ShowAsync(this);
+        }.ShowAsyncAuto(this);
         if (r != ContentDialogResult.Primary)
         {
             return;

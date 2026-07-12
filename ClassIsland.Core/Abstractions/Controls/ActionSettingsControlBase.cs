@@ -5,6 +5,7 @@ using Avalonia.Markup.Xaml.Templates;
 using Avalonia.VisualTree;
 using ClassIsland.Core.Abstractions.Automation;
 using ClassIsland.Core.Abstractions.Services;
+using ClassIsland.Core.Extensions.UI;
 using ClassIsland.Shared;
 using ClassIsland.Shared.Models.Automation;
 using FluentAvalonia.UI.Controls;
@@ -121,7 +122,7 @@ public abstract class ActionSettingsControlBase : UserControl
                 DataContext = this
             };
 
-            await dialog.ShowAsync(TopLevel.GetTopLevel(this));
+            await dialog.ShowAsyncAuto(TopLevel.GetTopLevel(this));
         }
     }
 
